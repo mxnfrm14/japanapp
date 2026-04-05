@@ -1,0 +1,32 @@
+# Backend - Python
+backend/venv/
+backend/.env
+backend/app/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/dist/
+backend/build/
+backend/*.egg-info/
+backend/.vscode/
+backend/.idea/
+
+# Frontend - Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.DS_Store
+frontend/.vscode/
+frontend/.idea/
+
+# Root
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+project.md

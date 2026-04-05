@@ -1,0 +1,1 @@
+"""JapanApp FastAPI Backend"""
