@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 import logging
 
 from app.config import settings
+from app.routes.routes import router as auth_router
 
 # Configure logging
 logging.basicConfig(
@@ -19,6 +20,8 @@ app = FastAPI(
     version="0.1.0",
     debug=settings.debug,
 )
+
+app.include_router(auth_router)
 
 # Add CORS middleware
 app.add_middleware(

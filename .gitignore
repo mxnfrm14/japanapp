@@ -1,7 +1,7 @@
 # Backend - Python
 backend/venv/
 backend/.env
-backend/app/__pycache__/
+backend/**/__pycache__/
 backend/*.pyc
 backend/.pytest_cache/
 backend/.coverage
@@ -30,3 +30,4 @@ frontend/.idea/
 .idea/
 
 project.md
+pp.md
