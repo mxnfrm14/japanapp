@@ -4,7 +4,8 @@ from fastapi.responses import JSONResponse
 import logging
 
 from app.config import settings
-from app.routes.routes import router as auth_router
+from app.routes.auth import router as auth_router
+from app.routes.kana import kana_router
 
 # Configure logging
 logging.basicConfig(
@@ -22,6 +23,7 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+app.include_router(kana_router)
 
 # Add CORS middleware
 app.add_middleware(

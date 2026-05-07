@@ -1,24 +1,14 @@
-"""Routes for JapanApp FastAPI Backend"""
+"""Auth routes for JapanApp FastAPI Backend"""
 
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Header, status
-from pydantic import BaseModel
-
+from fastapi import APIRouter, HTTPException, Header, status, Depends
 from app.services.services import supabase_admin_request, supabase_auth_request
+from app.models.auth import LoginRequest, SignUpRequest
+from app.routes.utils import _get_error_detail, get_current_user
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-class LoginRequest(BaseModel):
-	email: str
-	password: str
-
-
-class SignUpRequest(BaseModel):
-	email: str
-	password: str
 
 
 def _serialize_supabase_response(data: Any) -> Any:
@@ -29,17 +19,6 @@ def _serialize_supabase_response(data: Any) -> Any:
 	if hasattr(data, "dict"):
 		return data.dict()
 	return data
-
-
-def _get_token_from_header(authorization: Optional[str]) -> str:
-	if not authorization or not authorization.startswith("Bearer "):
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
-	return authorization.removeprefix("Bearer ").strip()
-
-
-def _get_error_detail(response) -> str:
-	body = response.json()
-	return body.get("error_description") or body.get("msg") or body.get("error") or "Request failed"
 
 
 @router.post("/login")
@@ -83,14 +62,9 @@ def signup(payload: SignUpRequest):
 
 
 @router.get("/me")
-def me(authorization: Optional[str] = Header(default=None)):
-	token = _get_token_from_header(authorization)
-	response = supabase_auth_request("GET", "/auth/v1/user", token=token)
+def me(user: dict = Depends(get_current_user)):
+	return {"user": user}
 
-	if response.status_code >= 400:
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-
-	return {"user": response.json()}
 
 @router.post("/logout")
 def logout():
