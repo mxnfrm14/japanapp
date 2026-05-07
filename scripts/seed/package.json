@@ -1,0 +1,7 @@
+{
+	"dependencies": {
+		"unofficial-jisho-api": "^2.3.4",
+		"@supabase/supabase-js": "^2.105.3",
+		"dotenv": "^17.4.2"
+	}
+}

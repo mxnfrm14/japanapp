@@ -31,3 +31,8 @@ frontend/.idea/
 
 project.md
 pp.md
+
+*.env
+scripts/seed/node_modules/
+
+*.temp

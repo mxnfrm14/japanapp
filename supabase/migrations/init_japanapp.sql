@@ -42,7 +42,7 @@ create table public.vocabulary_item (
   id uuid primary key default gen_random_uuid(),
   japanese text not null,
   reading text,
-  meaning text not null,
+  meaning text,
   example_sentence text,
   example_translation text,
   kanji_breakdown jsonb,
@@ -52,7 +52,7 @@ create table public.vocabulary_item (
   frequency_rank int,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint vocabulary_item_difficulty_chk check (difficulty_level is null or difficulty_level between 1 and 10),
+  constraint vocabulary_item_difficulty_chk check (difficulty_level is null or difficulty_level between 1 and 5),
   constraint vocabulary_item_frequency_rank_chk check (frequency_rank is null or frequency_rank > 0)
 );
 
@@ -71,6 +71,7 @@ create table public.kanji_item (
   jlpt_level int,
   frequency_rank int,
   components jsonb,
+  stroke_order_gif_uri text,
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -431,9 +432,63 @@ for delete to authenticated using (user_id = auth.uid());
 create policy review_record_select_own on public.review_record
 for select to authenticated using (user_id = auth.uid());
 create policy review_record_insert_own on public.review_record
-for insert to authenticated with check (user_id = auth.uid());
+for insert to authenticated
+with check (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.flashcard f
+    where f.id = review_record.flashcard_id
+      and f.user_id = auth.uid()
+  )
+  and (
+    review_record.session_id is null
+    or exists (
+      select 1
+      from public.study_session s
+      where s.id = review_record.session_id
+        and s.user_id = auth.uid()
+    )
+  )
+);
 create policy review_record_update_own on public.review_record
-for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+for update to authenticated
+using (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.flashcard f
+    where f.id = review_record.flashcard_id
+      and f.user_id = auth.uid()
+  )
+  and (
+    review_record.session_id is null
+    or exists (
+      select 1
+      from public.study_session s
+      where s.id = review_record.session_id
+        and s.user_id = auth.uid()
+    )
+  )
+)
+with check (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.flashcard f
+    where f.id = review_record.flashcard_id
+      and f.user_id = auth.uid()
+  )
+  and (
+    review_record.session_id is null
+    or exists (
+      select 1
+      from public.study_session s
+      where s.id = review_record.session_id
+        and s.user_id = auth.uid()
+    )
+  )
+);
 create policy review_record_delete_own on public.review_record
 for delete to authenticated using (user_id = auth.uid());
 
@@ -458,9 +513,36 @@ for delete to authenticated using (user_id = auth.uid());
 create policy ai_message_select_own on public.ai_message
 for select to authenticated using (user_id = auth.uid());
 create policy ai_message_insert_own on public.ai_message
-for insert to authenticated with check (user_id = auth.uid());
+for insert to authenticated
+with check (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.ai_conversation c
+    where c.id = ai_message.conversation_id
+      and c.user_id = auth.uid()
+  )
+);
 create policy ai_message_update_own on public.ai_message
-for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+for update to authenticated
+using (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.ai_conversation c
+    where c.id = ai_message.conversation_id
+      and c.user_id = auth.uid()
+  )
+)
+with check (
+  user_id = auth.uid()
+  and exists (
+    select 1
+    from public.ai_conversation c
+    where c.id = ai_message.conversation_id
+      and c.user_id = auth.uid()
+  )
+);
 create policy ai_message_delete_own on public.ai_message
 for delete to authenticated using (user_id = auth.uid());
 
