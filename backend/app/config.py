@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     supabase_key: str
     supabase_service_key: str
     
+    # Database Configuration
+    database_url: str
+    
     # Ollama Configuration
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "mistral"

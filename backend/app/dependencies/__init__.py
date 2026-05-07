@@ -1,0 +1,1 @@
+"""Dependency helpers for JapanApp FastAPI Backend."""

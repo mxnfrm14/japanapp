@@ -1,5 +1,6 @@
 """Pydantic models for kana-related API payloads."""
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -15,4 +16,4 @@ class KanaItem(BaseModel):
     group_name: str | None = None
     stroke_count: int | None = None
     order_index: int
-    created_at: str
+    created_at: datetime
