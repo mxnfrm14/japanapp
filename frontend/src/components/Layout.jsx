@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ChatCircleDots, X } from '@phosphor-icons/react'
+import { SparkleIcon, X } from '@phosphor-icons/react'
 import Sidebar from './Sidebar'
 import BottomNav from './BottomNav'
 import TopNavBar from './TopNavBar'
@@ -13,6 +13,8 @@ export default function Layout({ children }) {
 
   const location = useLocation()
   const isHomePage = location.pathname === '/'
+  const isAIChatPage = location.pathname === '/ai'
+  const isSettingsPage = location.pathname === '/settings'
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -21,7 +23,7 @@ export default function Layout({ children }) {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const showChatLayout = !isMobile && !isHomePage
+  const showChatLayout = !isMobile && !isHomePage && !isSettingsPage && !isAIChatPage
 
   return (
     <div className={`size-full transition-all duration-300 ease-in-out md:pl-[104px] ${isSidebarExpanded ? 'lg:pl-[280px]' : 'lg:pl-[104px]'}`}>
@@ -30,7 +32,7 @@ export default function Layout({ children }) {
       <Sidebar isExpanded={isSidebarExpanded} toggleSidebar={() => setIsSidebarExpanded(!isSidebarExpanded)} />
 
       {/* Main content stays clear of fixed top bar and desktop sidebar */}
-      <main className={`pt-[56px] md:pt-[80px] lg:pt-[80px] p-4 md:p-8 lg:p-[48px] pb-20 md:pb-8 lg:pb-[48px] min-h-screen ${showChatLayout ? 'flex gap-6' : ''}`}>
+      <main className={`pt-[56px] md:pt-[80px] lg:pt-[80px] p-4 md:p-8 pb-20 md:pb-8 min-h-screen ${showChatLayout ? 'flex gap-6' : ''}`}>
         
         {/* Actual Content Area */}
         <div className={`transition-all duration-300 ${showChatLayout && isChatOpen ? 'w-3/4' : 'w-full'}`}>
@@ -39,14 +41,14 @@ export default function Layout({ children }) {
 
         {/* AI Chat Panel */}
         {showChatLayout && (
-          <div className={`transition-all duration-300 flex-shrink-0 relative ${isChatOpen ? 'w-1/4 opacity-100 block' : 'w-0 opacity-0 hidden'}`}>
-            <div className="sticky top-[100px] h-[calc(100vh-140px)] flex flex-col bg-base-200 rounded-2xl overflow-hidden border border-base-content/10 dark:border-base-stroke-dark shadow-sm">
-               <div className="flex justify-between items-center p-4 border-b border-base-content/10 bg-base-300">
+          <div className={`transition-all duration-300 flex-shrink-0 relative ${isChatOpen ? 'w-3/8 opacity-100 block' : 'w-0 opacity-0 hidden'}`}>
+            <div className="sticky top-[100px] h-[calc(100vh-140px)] flex flex-col bg-bg rounded-2xl overflow-hidden border border-gray-300 dark:border-gray-600 shadow-sm">
+               <div className="flex justify-between items-center p-4 border-b border-gray-300 dark:border-gray-600 bg-bg">
                   <div className="flex items-center gap-2">
-                     <ChatCircleDots size={24} weight="fill" className="text-primary" />
+                     <SparkleIcon size={24} weight="fill" className="text-primary" />
                      <h2 className="text-lg font-bold">AI Tutor</h2>
                   </div>
-                  <button onClick={() => setIsChatOpen(false)} className="btn btn-sm btn-ghost btn-circle">
+                  <button onClick={() => setIsChatOpen(false)} className="btn btn-ghost btn-circle">
                      <X size={20} />
                   </button>
                </div>
@@ -63,7 +65,7 @@ export default function Layout({ children }) {
          <button 
            onClick={() => setIsChatOpen(true)}
            className="fixed right-8 bottom-8 btn btn-primary btn-circle btn-lg text-white shadow-lg z-50 transition-transform hover:scale-110">
-           <ChatCircleDots size={32} weight="fill" />
+           <SparkleIcon size={32} weight="fill" />
          </button>
       )}
 
