@@ -1,16 +1,10 @@
 /** @type {import('tailwindcss').Config} */
+// Tailwind v4: theme tokens live in @theme inside index.css.
+// This file only needs content paths and the dark mode strategy.
 export default {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './index.html',
+    './src/**/*.{js,jsx,ts,tsx}',
   ],
-  theme: {
-    extend: {
-      colors: {
-        primary: '#007AFF',
-        secondary: '#5AC8FA',
-      },
-    },
-  },
-  plugins: [],
+  darkMode: 'class', // toggled by ThemeContext adding .dark on <html>
 }

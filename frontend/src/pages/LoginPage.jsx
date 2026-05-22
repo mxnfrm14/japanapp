@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import './LoginPage.css'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -31,145 +30,57 @@ function LoginPage() {
 
   if (user) {
     return (
-      <div className="login-container login-bg-gradient">
-        <div className="login-blob login-blob-1" />
-        <div className="login-blob login-blob-2" />
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4 bg-bg">
+        <div className="absolute rounded-full pointer-events-none w-[288px] h-[288px] top-[33%] left-[-96px] bg-secondary opacity-[0.15]" />
+        <div className="absolute rounded-full pointer-events-none w-[256px] h-[256px] -top-[56px] right-[-64px] border border-primary opacity-[0.2]" />
 
-        <div className="card login-card max-w-md">
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            You are already signed in
-          </h1>
-          <p className="mt-3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            Your session is active. Continue to your dashboard to manage your profile and explore the app.
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="btn btn-primary btn-md mt-7 w-full"
-          >
-            Go to App
-          </button>
+        <div className="max-w-md w-full bg-surface rounded-xl border border-gray-300 dark:border-gray-600 shadow-lg p-6">
+          <h1 className="text-3xl font-bold text-text-primary">You are already signed in</h1>
+          <p className="mt-3 text-sm text-text-secondary">Your session is active. Continue to your dashboard to manage your profile and explore the app.</p>
+          <button type="button" onClick={() => navigate('/')} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary text-white font-medium h-10 px-4 mt-7 tracking-wide transition-all duration-200 shadow-[0_6px_18px_rgba(143,0,32,0.20)] hover:bg-primary-hover hover:-translate-y-[1px] hover:shadow-md active:bg-primary-pressed active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed">Go to App</button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="login-container login-bg-gradient">
-      <div className="login-blob login-blob-1" />
-      <div className="login-blob login-blob-2" />
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4 bg-bg">
+      <div className="absolute rounded-full pointer-events-none w-[288px] h-[288px] top-[33%] left-[-96px] bg-secondary opacity-[0.15]" />
+      <div className="absolute rounded-full pointer-events-none w-[256px] h-[256px] -top-[56px] right-[-64px] border border-primary opacity-[0.2]" />
 
-      <div className="login-grid">
-        {/* Form Section (sidebar removed) */}
-        <section className="login-form-section login-form-centered">
+      <div className="w-full max-w-[980px] mx-auto flex justify-center">
+        <section className="w-full max-w-[540px] rounded-xl border border-gray-300 dark:border-gray-600 shadow-lg bg-surface p-8">
           {/* Mode Toggle */}
-          <div className="login-toggle">
-            <button
-              type="button"
-              onClick={() => {
-                setMode('signin')
-                setMessage('')
-              }}
-              className={`login-toggle-btn ${mode === 'signin' ? 'active' : ''}`}
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode('signup')
-                setMessage('')
-              }}
-              className={`login-toggle-btn ${mode === 'signup' ? 'active' : ''}`}
-            >
-              Sign up
-            </button>
+          <div className="inline-flex rounded-sm bg-surface-raised p-1">
+            <button type="button" onClick={() => { setMode('signin'); setMessage('') }} className={`px-4 py-2 rounded-sm font-medium ${mode === 'signin' ? 'bg-surface text-text-primary shadow-sm' : 'text-text-secondary'}`}>Sign in</button>
+            <button type="button" onClick={() => { setMode('signup'); setMessage('') }} className={`px-4 py-2 rounded-sm font-medium ${mode === 'signup' ? 'bg-surface text-text-primary shadow-sm' : 'text-text-secondary'}`}>Sign up</button>
           </div>
 
           {/* Heading */}
-          <h2 className="text-2xl font-bold mt-6" style={{ color: 'var(--color-text-primary)' }}>
-            {mode === 'signin' ? 'Welcome back' : 'Create your account'}
-          </h2>
-          <p className="mt-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            {mode === 'signin'
-              ? 'Sign in to continue where you left off.'
-              : 'Register with email and start exploring JapanApp.'}
-          </p>
+          <h2 className="text-2xl font-bold mt-6 text-text-primary">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>
+          <p className="mt-2 text-sm text-text-secondary">{mode === 'signin' ? 'Sign in to continue where you left off.' : 'Register with email and start exploring JapanApp.'}</p>
 
-          {/* Form */}
-          <form className="login-form" onSubmit={onSubmit}>
-            {/* Email Field */}
-            <div className="login-field">
-              <label htmlFor="email" className="login-label">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                autoComplete="email"
-                className="login-input"
-                placeholder="you@example.com"
-              />
+          <form className="mt-7 flex flex-col gap-4" onSubmit={onSubmit}>
+            <div className="flex flex-col">
+              <label htmlFor="email" className="mb-2 text-sm font-medium text-text-secondary">Email</label>
+              <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" placeholder="you@example.com" className="w-full transition-all duration-200 ease-in-out font-sans text-base px-4 py-3 border border-border rounded-md bg-surface text-text-primary placeholder:text-text-disabled focus:outline-2 focus:outline-primary focus:outline-offset-0 focus:border-primary focus:shadow-inner disabled:opacity-50 disabled:cursor-not-allowed" />
             </div>
 
-            {/* Password Field */}
-            <div className="login-field">
-              <label htmlFor="password" className="login-label">Password</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                className="login-input"
-                placeholder="At least 6 characters"
-              />
+            <div className="flex flex-col">
+              <label htmlFor="password" className="mb-2 text-sm font-medium text-text-secondary">Password</label>
+              <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} placeholder="At least 6 characters" className="w-full transition-all duration-200 ease-in-out font-sans text-base px-4 py-3 border border-border rounded-md bg-surface text-text-primary placeholder:text-text-disabled focus:outline-2 focus:outline-primary focus:outline-offset-0 focus:border-primary focus:shadow-inner disabled:opacity-50 disabled:cursor-not-allowed" />
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="login-alert login-alert-error">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-md border px-4 py-3 text-sm text-text-error bg-text-error-subtle">{error}</div>}
+            {message && <div className="rounded-md border px-4 py-3 text-sm text-text-success bg-text-success-subtle">{message}</div>}
 
-            {/* Success Message */}
-            {message && (
-              <div className="login-alert login-alert-success">
-                {message}
-              </div>
-            )}
-
-            {/* Submit Button */}
             <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn btn-secondary btn-md w-full"
-              >
-                {isLoading
-                  ? 'Loading...'
-                  : mode === 'signin'
-                    ? 'Sign in'
-                    : 'Create account'}
-              </button>
+              <button type="submit" disabled={isLoading} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary text-white font-medium h-10 px-4 tracking-wide transition-all duration-200 shadow-[0_6px_18px_rgba(143,0,32,0.20)] hover:bg-primary-hover hover:-translate-y-[1px] hover:shadow-md active:bg-primary-pressed active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed">{isLoading ? 'Loading...' : mode === 'signin' ? 'Sign in' : 'Create account'}</button>
             </div>
 
-            {/* Toggle Mode Link */}
-            <div className="login-toggle-link">
+            <div className="pt-4 text-center text-sm text-text-secondary">
               {mode === 'signin' ? 'New here?' : 'Already have an account?'}{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode(mode === 'signin' ? 'signup' : 'signin')
-                  setMessage('')
-                }}
-                className="login-link"
-              >
-                {mode === 'signin' ? 'Create one' : 'Sign in'}
-              </button>
+              <button type="button" onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setMessage('') }} className="text-primary font-semibold">{mode === 'signin' ? 'Create one' : 'Sign in'}</button>
             </div>
           </form>
         </section>
