@@ -52,7 +52,7 @@ export default function Layout({ children }) {
                      <X size={20} />
                   </button>
                </div>
-               <div className="p-4 flex-grow overflow-y-auto w-full">
+               <div className="flex-grow overflow-hidden flex flex-col w-full">
                   <AIChat isPanel={true} />
                </div>
             </div>
