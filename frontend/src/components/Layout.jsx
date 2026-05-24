@@ -48,7 +48,7 @@ export default function Layout({ children }) {
                      <SparkleIcon size={24} weight="fill" className="text-primary" />
                      <h2 className="text-lg font-bold">AI Tutor</h2>
                   </div>
-                  <button onClick={() => setIsChatOpen(false)} className="btn btn-ghost btn-circle">
+                  <button onClick={() => setIsChatOpen(false)} className="btn btn-ghost btn-circle hover:bg-primary hover:text-white">
                      <X size={20} />
                   </button>
                </div>
