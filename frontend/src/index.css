@@ -432,3 +432,15 @@ input[type="radio"]:disabled {
   height: 100%;
   width: 0;
 }
+
+/* ============================================================
+   COMPONENT — BUTTON OVERRIDES
+   ============================================================ */
+
+.btn:disabled,
+.btn[disabled] {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-text-disabled) !important;
+  border-color: transparent !important;
+  opacity: 0.6;
+}
