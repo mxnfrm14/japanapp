@@ -23,6 +23,28 @@ export const useFetchVocabulary = (page = 1, limit = 20) => {
   })
 }
 
+export const useFetchVocabularyWithFilters = ({ page = 1, limit = 20, jlpt, tag } = {}) => {
+  return useQuery({
+    queryKey: ['vocabulary', page, limit, jlpt ?? null, tag ?? null],
+    queryFn: async () => {
+      const response = await apiClient.get('/vocabulary/list', {
+        params: { page, limit, jlpt, tag },
+      })
+      return response.data
+    },
+  })
+}
+
+export const useFetchVocabularyTags = () => {
+  return useQuery({
+    queryKey: ['vocabulary-tags'],
+    queryFn: async () => {
+      const response = await apiClient.get('/vocabulary/tags')
+      return response.data
+    },
+  })
+}
+
 export const useFetchDueFlashcards = () => {
   return useQuery({
     queryKey: ['flashcards-due'],
@@ -50,10 +72,13 @@ export const useSubmitFlashcardAnswer = () => {
 
 export const useAIChat = () => {
   return useMutation({
-    mutationFn: async ({ conversationId, message }) => {
+    mutationFn: async ({ messages, systemPrompt, model, temperature, maxTokens }) => {
       const response = await apiClient.post('/ai/chat', {
-        conversation_id: conversationId,
-        message,
+        messages,
+        system_prompt: systemPrompt,
+        model,
+        temperature,
+        max_tokens: maxTokens,
       })
       return response.data
     },

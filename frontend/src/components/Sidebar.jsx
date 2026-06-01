@@ -6,7 +6,7 @@ import { HouseIcon, CardsIcon, BookBookmarkIcon , ChatIcon, GearIcon, SparkleIco
 const links = [
   { to: '/', label: 'Home', icon: <HouseIcon size={20} weight="bold"/> , jptext: "ホーム"},
   { to: '/flashcards', label: 'Flashcards', icon: <CardsIcon size={20} weight="bold"/> , jptext: "フラッシュカード"},
-  { to: '/vocabulary', label: 'Vocabulary', icon: <BookBookmarkIcon size={20} weight="bold"/> , jptext: "語彙"},
+  { to: '/vocabulary', label: 'Vocabulary', icon: <BookBookmarkIcon size={20} weight="bold"/> , jptext: "単語"},
   { to: '/kana', label: 'Kana', icon: "あ", jptext: "仮名"},
   { to: '/kanji', label: 'Kanji', icon: "学", jptext: "漢字"},
 
