@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # Ollama Configuration
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "mistral"
+
+    mistral_api_key: str = os.getenv("MISTRAL_API_KEY", "")
     
     # FastAPI Configuration
     environment: str = "development"
