@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import apiClient from '../services/api'
 
 const VIEW_MODES = [
@@ -26,6 +27,8 @@ const formatReadings = (readings = []) => {
 }
 
 function KanjiCard({ item }) {
+  const navigate = useNavigate()
+
   return (
     <article className="flex h-full flex-col rounded-3xl border border-gray-200 bg-bg-card p-5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700">
       <div className="flex items-start justify-between gap-4">
@@ -49,11 +52,21 @@ function KanjiCard({ item }) {
       </div>
 
       <h4 className="mt-4 flex-1 text-sm leading-6 text-text-primary">{item.meaning || 'No meaning provided.'}</h4>
+
+      <button
+        type="button"
+        onClick={() => navigate(`/kanji/${item.id}`, { state: { item } })}
+        className="mt-5 inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-surface px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-primary hover:text-primary dark:border-gray-700"
+      >
+        See more
+      </button>
     </article>
   )
 }
 
 function KanjiRow({ item }) {
+  const navigate = useNavigate()
+
   return (
     <tr className="border-b border-gray-200 last:border-b-0 dark:border-gray-700">
       <td className="py-4 pr-4 align-top">
@@ -69,6 +82,15 @@ function KanjiRow({ item }) {
         <div className="mt-1">{formatReadings(item.kunyomi)}</div>
       </td>
       <td className="py-4 align-top text-sm text-text-primary">{item.meaning || 'No meaning provided.'}</td>
+      <td className="py-4 pl-4 align-top text-right">
+        <button
+          type="button"
+          onClick={() => navigate(`/kanji/${item.id}`, { state: { item } })}
+          className="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-surface px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-primary hover:text-primary dark:border-gray-700"
+        >
+          See more
+        </button>
+      </td>
     </tr>
   )
 }
@@ -221,6 +243,7 @@ export default function Kanji() {
                   <th className="px-5 py-4">Level</th>
                   <th className="px-5 py-4">Readings</th>
                   <th className="px-5 py-4">Meaning</th>
+                  <th className="px-5 py-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>

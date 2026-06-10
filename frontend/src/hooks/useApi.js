@@ -84,3 +84,31 @@ export const useAIChat = () => {
     },
   })
 }
+
+export const useSearch = (query, { limit = 20 } = {}) => {
+  return useQuery({
+    queryKey: ['search', query],
+    enabled: !!query && String(query).trim().length > 0,
+    queryFn: async () => {
+      try {
+        const response = await apiClient.get('/search', {
+          params: { q: query, limit },
+        })
+        if (Array.isArray(response.data)) {
+          return response.data
+        }
+
+        if (Array.isArray(response.data?.items)) {
+          return response.data.items
+        }
+
+        return []
+      } catch (err) {
+        // If the backend endpoint isn't available yet or network fails,
+        // return an empty list so UI remains responsive.
+        return []
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+  })
+}

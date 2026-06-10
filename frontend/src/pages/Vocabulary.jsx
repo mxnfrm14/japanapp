@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import apiClient from '../services/api'
 
 const VIEW_MODES = [
@@ -12,6 +13,8 @@ const SORT_MODES = [
 ]
 
 function VocabularyItemCard({ item }) {
+  const navigate = useNavigate()
+
   return (
     <article className="flex h-full flex-col rounded-3xl border border-gray-200 bg-bg-card p-5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700">
       <div className="flex items-start justify-between gap-4">
@@ -47,11 +50,21 @@ function VocabularyItemCard({ item }) {
         <span>Rank #{item.frequency_rank ?? '—'}</span>
         <span>{item.reading ? `${item.reading}` : 'Reading unavailable'}</span>
       </div>
+
+      <button
+        type="button"
+        onClick={() => navigate(`/vocabulary/${item.id}`, { state: { item } })}
+        className="mt-5 inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-surface px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-primary hover:text-primary dark:border-gray-700"
+      >
+        See more
+      </button>
     </article>
   )
 }
 
 function VocabularyItemRow({ item }) {
+  const navigate = useNavigate()
+
   return (
     <tr className="border-b border-gray-200 last:border-b-0 dark:border-gray-700">
       <td className="py-4 pr-4 align-top">
@@ -77,6 +90,15 @@ function VocabularyItemRow({ item }) {
       </td>
       <td className="py-4 pr-4 align-top text-sm font-medium text-text-primary">{item.difficulty_level ?? '—'}</td>
       <td className="py-4 align-top text-sm text-text-muted">#{item.frequency_rank ?? '—'}</td>
+      <td className="py-4 pl-4 align-top text-right">
+        <button
+          type="button"
+          onClick={() => navigate(`/vocabulary/${item.id}`, { state: { item } })}
+          className="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-surface px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-primary hover:text-primary dark:border-gray-700"
+        >
+          See more
+        </button>
+      </td>
     </tr>
   )
 }
@@ -281,6 +303,7 @@ export default function Vocabulary() {
                   <th className="px-5 py-4">Tags</th>
                   <th className="px-5 py-4">Level</th>
                   <th className="px-5 py-4">Rank</th>
+                  <th className="px-5 py-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
