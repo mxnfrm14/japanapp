@@ -3,8 +3,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.dependencies.auth import get_auth_token
-from app.models.vocabulary import VocabularyListResponse, TagListResponse
-from app.services.vocabulary import fetch_vocabulary, fetch_vocabulary_tags
+from app.models.vocabulary import VocabularyListResponse, TagListResponse, VocabularyDetailItem
+from app.services.vocabulary import fetch_vocabulary, fetch_vocabulary_tags, fetch_vocabulary_item
 
 vocabulary_router = APIRouter(prefix="/vocabulary", tags=["vocabulary"])
 
@@ -35,5 +35,19 @@ def fetch_tags(token: str = Depends(get_auth_token)):
 	try:
 		tags = fetch_vocabulary_tags()
 		return TagListResponse(tags=tags)
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+@vocabulary_router.get("/{vocabulary_id}", response_model=VocabularyDetailItem)
+def fetch_vocabulary_detail(vocabulary_id: str, token: str = Depends(get_auth_token)):
+	"""Fetch one vocabulary item by id."""
+	try:
+		item = fetch_vocabulary_item(vocabulary_id)
+		if item is None:
+			raise HTTPException(status_code=404, detail="Vocabulary item not found")
+		return item
+	except HTTPException:
+		raise
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

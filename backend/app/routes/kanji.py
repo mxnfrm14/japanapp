@@ -3,8 +3,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.dependencies.auth import get_auth_token
-from app.models.kanji import KanjiListResponse
-from app.services.kanji import fetch_kanji
+from app.models.kanji import KanjiListResponse, KanjiDetailItem, KanjiItem
+from app.services.kanji import fetch_kanji, fetch_kanji_item
 
 kanji_router = APIRouter(prefix="/kanji", tags=["kanji"])
 
@@ -28,3 +28,16 @@ def fetch_kanji_list(
         return KanjiListResponse(items=items, page=page, limit=limit, has_more=has_more)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@kanji_router.get("/{kanji_id}", response_model=KanjiDetailItem)
+def fetch_kanji_detail(kanji_id: str, token: str = Depends(get_auth_token)):
+	"""Fetch one kanji item by id."""
+	try:
+		item = fetch_kanji_item(kanji_id)
+		if item is None:
+			raise HTTPException(status_code=404, detail="Kanji item not found")
+		return item
+	except HTTPException:
+		raise
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

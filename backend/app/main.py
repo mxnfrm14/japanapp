@@ -8,6 +8,7 @@ from app.routes.ai import ai_router
 from app.routes.auth import router as auth_router
 from app.routes.kanji import kanji_router
 from app.routes.kana import kana_router
+from app.routes.search import search_router
 from app.routes.vocabulary import vocabulary_router
 
 # Configure logging
@@ -29,6 +30,7 @@ app.include_router(auth_router)
 app.include_router(ai_router)
 app.include_router(kana_router)
 app.include_router(kanji_router)
+app.include_router(search_router)
 app.include_router(vocabulary_router)
 
 # Add CORS middleware

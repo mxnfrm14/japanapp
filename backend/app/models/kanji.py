@@ -23,6 +23,10 @@ class KanjiItem(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class KanjiDetailItem(KanjiItem):
+    """Expanded kanji payload returned by the detail endpoint."""
+
+    pass
 
 class KanjiListResponse(BaseModel):
     """Paginated kanji list response."""

@@ -55,3 +55,20 @@ def fetch_kanji(
     items = [dict(row) for row in rows]
     has_more = len(items) > limit
     return items[:limit], has_more
+
+
+def fetch_kanji_item(kanji_id: str) -> dict[str, Any] | None:
+    """Fetch a single kanji item by id."""
+    query = """
+        SELECT id, kanji, meaning, onyomi, kunyomi, stroke_count, radical, jlpt_level,
+               frequency_rank, components, stroke_order_gif_uri, notes, created_at
+        FROM public.kanji_item
+        WHERE id = %s
+        LIMIT 1
+    """
+
+    with get_db_cursor() as cur:
+        cur.execute(query, [kanji_id])
+        row = cur.fetchone()
+
+    return dict(row) if row else None
