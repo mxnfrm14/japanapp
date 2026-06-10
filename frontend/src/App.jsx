@@ -6,7 +6,9 @@ import LoginPage from './pages/LoginPage'
 import Home from './pages/Home'
 import Kana from './pages/Kana'
 import Kanji from './pages/Kanji'
+import KanjiDetail from './pages/KanjiDetail'
 import Vocabulary from './pages/Vocabulary'
+import VocabularyDetail from './pages/VocabularyDetail'
 import Flashcards from './pages/Flashcards'
 import AIChat from './pages/AIChat'
 import Settings from './pages/Settings'
@@ -68,10 +70,28 @@ function App() {
             )}
             />
 
+            <Route path="/kanji/:kanjiId" element={(
+              <ProtectedRoute>
+                <Layout>
+                  <KanjiDetail />
+                </Layout>
+              </ProtectedRoute>
+            )}
+            />
+
             <Route path="/vocabulary" element={(
               <ProtectedRoute>
                 <Layout>
                   <Vocabulary />
+                </Layout>
+              </ProtectedRoute>
+            )}
+            />
+
+            <Route path="/vocabulary/:vocabularyId" element={(
+              <ProtectedRoute>
+                <Layout>
+                  <VocabularyDetail />
                 </Layout>
               </ProtectedRoute>
             )}
