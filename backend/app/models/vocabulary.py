@@ -1,6 +1,7 @@
 """Pydantic models for vocabulary-related API payloads."""
 
 from pydantic import BaseModel, Field
+from typing import Any
 from datetime import datetime
 
 
@@ -15,6 +16,14 @@ class VocabularyItem(BaseModel):
     difficulty_level: int | None = None
     frequency_rank: int | None = None
     created_at: datetime
+
+class VocabularyDetailItem(VocabularyItem):
+    """Expanded vocabulary payload returned by the detail endpoint."""
+
+    example_sentence: str | None = None
+    example_translation: str | None = None
+    kanji_breakdown: dict[str, Any] | list[Any] | str | None = None
+    jisho_url: str | None = None
 
 
 class VocabularyListResponse(BaseModel):

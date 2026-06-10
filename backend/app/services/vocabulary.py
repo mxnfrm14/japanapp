@@ -56,3 +56,19 @@ def fetch_vocabulary_tags() -> list[str]:
         rows = cur.fetchall()
 
     return [row[0] for row in rows if row[0]]
+
+def fetch_vocabulary_item(vocabulary_id: str) -> dict[str, Any] | None:
+    """Fetch a single vocabulary item by id."""
+    query = """
+        SELECT id, japanese, reading, meaning, example_sentence, example_translation,
+               kanji_breakdown, tags, jisho_url, difficulty_level, frequency_rank, created_at
+        FROM public.vocabulary_item
+        WHERE id = %s
+        LIMIT 1
+    """
+
+    with get_db_cursor() as cur:
+        cur.execute(query, [vocabulary_id])
+        row = cur.fetchone()
+
+    return dict(row) if row else None
