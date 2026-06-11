@@ -13,7 +13,6 @@ backend/build/
 backend/*.egg-info/
 backend/.vscode/
 backend/.idea/
-backend/tests/
 
 # Frontend - Node
 frontend/node_modules/
