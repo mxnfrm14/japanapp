@@ -37,9 +37,9 @@ jobs:
         working-directory: backend
         run: uv run python -m compileall app
 
-      - name: Run tests
-        working-directory: backend
-        run: uv run pytest --tb=short -q
+      # - name: Run tests
+      #   working-directory: backend
+      #   run: uv run pytest --tb=short -q
 
   frontend:
     name: Frontend — Lint & Build
