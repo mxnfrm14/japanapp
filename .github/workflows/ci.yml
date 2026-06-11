@@ -16,8 +16,6 @@ jobs:
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      OLLAMA_BASE_URL: ${{ secrets.OLLAMA_BASE_URL }}
-      OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
 
     steps:
       - name: Checkout
@@ -46,11 +44,6 @@ jobs:
   frontend:
     name: Frontend — Lint & Build
     runs-on: ubuntu-latest
-
-    env:
-      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
     steps:
       - name: Checkout
