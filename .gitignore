@@ -1,5 +1,6 @@
 # Backend - Python
 backend/venv/
+backend/.venv/
 backend/.env
 backend/**/__pycache__/
 backend/*.pyc
@@ -11,6 +12,7 @@ backend/build/
 backend/*.egg-info/
 backend/.vscode/
 backend/.idea/
+backend/tests/
 
 # Frontend - Node
 frontend/node_modules/
