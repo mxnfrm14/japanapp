@@ -9,7 +9,7 @@ export function ThemeProvider({ children }) {
       if (theme === 'dark') return true
       if (theme === 'light') return false
     } catch (e) {
-      // ignore
+      console.error('Failed to read theme from localStorage:', e)
     }
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -25,7 +25,7 @@ export function ThemeProvider({ children }) {
     try {
       localStorage.setItem('theme', dark ? 'dark' : 'light')
     } catch (e) {
-      // ignore
+      console.error('Failed to save theme to localStorage:', e)
     }
   }, [dark])
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import apiClient from '../services/api'
+import { ArrowUpRightIcon, ToteSimpleIcon } from '@phosphor-icons/react'
 
 const formatStructuredValue = (value) => {
   if (value === null || value === undefined || value === '') {
@@ -35,7 +36,7 @@ export default function VocabularyDetail() {
     let isActive = true
 
     const loadVocabularyItem = async () => {
-      if (!vocabularyId || location.state?.item?.id === vocabularyId) {
+      if (!vocabularyId) {
         setIsLoading(false)
         return
       }
@@ -69,7 +70,7 @@ export default function VocabularyDetail() {
     return () => {
       isActive = false
     }
-  }, [vocabularyId, location.state])
+  }, [vocabularyId])
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -109,21 +110,32 @@ export default function VocabularyDetail() {
                   <div className="text-xs uppercase tracking-[0.2em] text-text-muted">Level</div>
                   <div className="mt-1 text-lg font-semibold text-text-primary">N{item.difficulty_level ?? '—'}</div>
                 </div>
-                <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
-                  <div className="text-xs uppercase tracking-[0.2em] text-text-muted">Frequency</div>
-                  <div className="mt-1 text-lg font-semibold text-text-primary">#{item.frequency_rank ?? '—'}</div>
-                </div>
-                <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
-                  <div className="text-xs uppercase tracking-[0.2em] text-text-muted">Tags</div>
-                  <div className="mt-1 text-lg font-semibold text-text-primary">{Array.isArray(item.tags) ? item.tags.length : 0}</div>
-                </div>
+
+                {/* button to jisho url */}
+                {item.jisho_url && (
+                  <button
+                    type="button"
+                    onClick={() => window.open(item.jisho_url, '_blank')}
+                    className="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-text-inverse shadow-sm transition-colors hover:bg-primary-hover"
+                  >
+                    Open in Jisho <ArrowUpRightIcon size={20} weight="bold" /> 
+                  </button>
+                )}
               </div>
             </div>
           </section>
 
+          <section className="">
+
+            <DetailRow label="Example Sentence">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                {item.example_sentence && <span className="text-primary text-2xl">{item.example_sentence}</span>}
+                {item.example_translation && <span className="text-xs text-text-secondary">{item.example_translation}</span>}
+              </div>
+            </DetailRow>
+          </section>
           <section className="grid gap-4 md:grid-cols-2">
-            <DetailRow label="Example Sentence">{item.example_sentence || '—'}</DetailRow>
-            <DetailRow label="Example Translation">{item.example_translation || '—'}</DetailRow>
+
             <DetailRow label="Tags">
               <div className="flex flex-wrap gap-2">
                 {(item.tags || []).length > 0 ? (
@@ -139,15 +151,6 @@ export default function VocabularyDetail() {
             </DetailRow>
             <DetailRow label="Kanji Breakdown">
               <pre className="overflow-x-auto whitespace-pre-wrap rounded-xl bg-bg px-3 py-2 text-xs text-text-secondary">{formatStructuredValue(item.kanji_breakdown)}</pre>
-            </DetailRow>
-            <DetailRow label="Jisho URL">
-              {item.jisho_url ? (
-                <a href={item.jisho_url} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">
-                  Open source entry
-                </a>
-              ) : (
-                '—'
-              )}
             </DetailRow>
           </section>
         </div>

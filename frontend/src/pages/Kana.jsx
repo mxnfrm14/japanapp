@@ -250,7 +250,7 @@ export default function Kana() {
           <section className="rounded-3xl border border-gray-200 bg-bg-card p-5 shadow-sm dark:border-gray-700 md:p-6">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <h2 className="font-display text-xl text-text-primary md:text-2xl">{activeTab === 'hiragana' ? 'ひらがな' : 'カタカナ'}</h2>
+                <h2 className="font-display text-xl text-text-primary md:text-2xl">{activeTab === 'hiragana' ? 'ひらがな (Hiragana)' : 'カタカナ (Katakana)'}</h2>
                 <p className="mt-1 text-sm text-text-secondary">
                   {activeTab === 'hiragana' ? 'ひらがな' : 'カタカナ'} in the classic Japanese reading order.
                 </p>

@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useTheme } from "../contexts/ThemeContext";
 import { SunIcon, MoonIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import Search from './Search'
 
 
 export default function TopNavBar({ isExpanded = true }) {
-  const { dark, setDark } = useTheme();
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const inputRef = useRef(null)

@@ -106,6 +106,7 @@ export const useSearch = (query, { limit = 20 } = {}) => {
       } catch (err) {
         // If the backend endpoint isn't available yet or network fails,
         // return an empty list so UI remains responsive.
+        console.error('Search failed:', err)
         return []
       }
     },

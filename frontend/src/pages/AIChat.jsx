@@ -189,7 +189,7 @@ export default function AIChat({ isPanel, aiPrompt }) {
                 type="button"
                 onClick={() => sendMessage(prompt)}
                 disabled={isSending}
-                className="rounded-full border border-gray-200 bg-white px-3 py-2 text-left text-xs text-text-primary shadow-sm transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-bg-card"
+                className="rounded-full border border-gray-200 bg-bg-card px-3 py-2 text-left text-xs text-text-primary shadow-sm transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-bg-card"
               >
                 {prompt}
               </button>
