@@ -20,8 +20,8 @@ class KanjiItem(BaseModel):
     components: dict | list | None = None
     stroke_order_gif_uri: str | None = None
     notes: str | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 class KanjiDetailItem(KanjiItem):
     """Expanded kanji payload returned by the detail endpoint."""

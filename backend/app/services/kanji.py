@@ -61,7 +61,7 @@ def fetch_kanji_item(kanji_id: str) -> dict[str, Any] | None:
     """Fetch a single kanji item by id."""
     query = """
         SELECT id, kanji, meaning, onyomi, kunyomi, stroke_count, radical, jlpt_level,
-               frequency_rank, components, stroke_order_gif_uri, notes, created_at
+               frequency_rank, components, stroke_order_gif_uri, notes, created_at, updated_at
         FROM public.kanji_item
         WHERE id = %s
         LIMIT 1

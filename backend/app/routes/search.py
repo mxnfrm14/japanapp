@@ -9,6 +9,17 @@ from app.services.search import search_vocabulary_and_kanji
 search_router = APIRouter(tags=["search"])
 
 
+def parse_search_query(q: str) -> tuple[str, str | None]:
+    """Returns (cleaned_query, type_filter)."""
+    for prefix in ("#kanji",):
+        if q.lower().startswith(prefix):
+            return q[len(prefix):].strip(), "kanji"
+    for prefix in ("#vocabulary", "#vocab"):
+        if q.lower().startswith(prefix):
+            return q[len(prefix):].strip(), "vocabulary"
+    return q, None
+
+
 @search_router.get("/search", response_model=list[SearchItem])
 def search(
     q: str = Query(..., min_length=1),
@@ -19,6 +30,13 @@ def search(
 ):
     """Search vocabulary and kanji with optional JLPT and tag filters."""
     try:
-        return search_vocabulary_and_kanji(q=q, limit=limit, jlpt=jlpt, tag=tag)
+        cleaned_query, type_filter = parse_search_query(q)
+        return search_vocabulary_and_kanji(
+            q=cleaned_query,
+            limit=limit,
+            jlpt=jlpt,
+            tag=tag,
+            type_filter=type_filter,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
