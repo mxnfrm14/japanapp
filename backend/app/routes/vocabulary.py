@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.dependencies.auth import get_auth_token
 from app.models.vocabulary import VocabularyListResponse, TagListResponse, VocabularyDetailItem
-from app.services.vocabulary import fetch_vocabulary, fetch_vocabulary_tags, fetch_vocabulary_item
+from app.services.vocabulary import fetch_vocabulary, fetch_vocabulary_tags, fetch_vocabulary_item, fetch_linked_kanjis
 
 vocabulary_router = APIRouter(prefix="/vocabulary", tags=["vocabulary"])
 
@@ -46,6 +46,7 @@ def fetch_vocabulary_detail(vocabulary_id: str, token: str = Depends(get_auth_to
 		item = fetch_vocabulary_item(vocabulary_id)
 		if item is None:
 			raise HTTPException(status_code=404, detail="Vocabulary item not found")
+		item["linked_kanjis"] = fetch_linked_kanjis(vocabulary_id)
 		return item
 	except HTTPException:
 		raise

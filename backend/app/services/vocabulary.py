@@ -72,3 +72,41 @@ def fetch_vocabulary_item(vocabulary_id: str) -> dict[str, Any] | None:
         row = cur.fetchone()
 
     return dict(row) if row else None
+
+def fetch_linked_kanjis(vocabulary_id: str) -> list[dict[str, Any]]:
+    """Fetch linked kanji for a given vocabulary item."""
+    query = """
+        SELECT id, kanji_id, vocabulary_item_id, is_common, created_at
+        FROM public.kanji_vocabulary_link
+        WHERE vocabulary_item_id = %s
+    """
+
+    with get_db_cursor() as cur:
+        cur.execute(query, [vocabulary_id])
+        rows = cur.fetchall()
+
+    linked_kanjis = []
+    if not rows:
+        return linked_kanjis
+
+    kanji_ids = [row["kanji_id"] for row in rows]
+    kanji_lookup_query = """
+        SELECT id, kanji
+        FROM public.kanji_item
+        WHERE id = ANY(%s::uuid[])
+    """
+
+    with get_db_cursor() as cur:
+        cur.execute(kanji_lookup_query, [kanji_ids])
+        kanji_rows = cur.fetchall()
+
+    kanji_lookup = {row["id"]: row["kanji"] for row in kanji_rows}
+
+    for row in rows:
+        item = dict(row)
+        item["vocabulary_id"] = item.pop("vocabulary_item_id")
+        item["kanji"] = kanji_lookup.get(item["kanji_id"], "")
+        linked_kanjis.append(item)
+
+    return linked_kanjis
+

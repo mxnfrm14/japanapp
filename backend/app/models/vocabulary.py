@@ -17,6 +17,15 @@ class VocabularyItem(BaseModel):
     frequency_rank: int | None = None
     created_at: datetime
 
+
+class LinkedKanji(BaseModel):
+    id: str
+    kanji_id: str
+    kanji: str
+    vocabulary_id: str
+    is_common: bool
+    created_at: datetime
+
 class VocabularyDetailItem(VocabularyItem):
     """Expanded vocabulary payload returned by the detail endpoint."""
 
@@ -24,6 +33,7 @@ class VocabularyDetailItem(VocabularyItem):
     example_translation: str | None = None
     kanji_breakdown: dict[str, Any] | list[Any] | str | None = None
     jisho_url: str | None = None
+    linked_kanjis: list[LinkedKanji] = Field(default_factory=list)
 
 
 class VocabularyListResponse(BaseModel):
