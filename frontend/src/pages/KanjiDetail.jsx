@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import apiClient from "../services/api";
-import { ArrowUpRightIcon } from "@phosphor-icons/react";
 
 const formatList = (value) => {
   if (!Array.isArray(value) || value.length === 0) {
@@ -46,7 +45,7 @@ export default function KanjiDetail() {
     let isActive = true;
 
     const loadKanji = async () => {
-      if (!kanjiId || location.state?.item?.id === kanjiId) {
+      if (!kanjiId) {
         setIsLoading(false);
         return;
       }
@@ -172,7 +171,7 @@ export default function KanjiDetail() {
                       )}
                       {ex.meaning && (
                         <span className="text-xs text-text-muted">
-                          — {ex.meaning}
+                          {ex.meaning}
                         </span>
                       )}
                     </div>
@@ -201,7 +200,7 @@ export default function KanjiDetail() {
                       )}
                       {ex.meaning && (
                         <span className="text-xs text-text-muted">
-                          — {ex.meaning}
+                          {ex.meaning}
                         </span>
                       )}
                     </div>
