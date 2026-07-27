@@ -14,6 +14,7 @@ def fetch_vocabulary_list(
 	limit: int = Query(default=20, ge=1, le=100),
 	jlpt: int | None = Query(default=None, ge=1, le=5),
 	tag: str | None = Query(default=None),
+	order: str = Query(default="desc", pattern="^(asc|desc)$"),
 	token: str = Depends(get_auth_token),
 ):
 	"""Fetch a paginated vocabulary list optimized for large result sets.
@@ -21,9 +22,10 @@ def fetch_vocabulary_list(
 	Optional filters:
 	- `jlpt`: restrict to vocabulary with the given difficulty level.
 	- `tag`: restrict to vocabulary items containing the given tag.
+	- `order`: sort direction by JLPT difficulty level, `desc` (N5 -> N1) or `asc`.
 	"""
 	try:
-		items, has_more = fetch_vocabulary(page=page, limit=limit, jlpt=jlpt, tag=tag)
+		items, has_more = fetch_vocabulary(page=page, limit=limit, jlpt=jlpt, tag=tag, order=order)
 		return VocabularyListResponse(items=items, page=page, limit=limit, has_more=has_more)
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
