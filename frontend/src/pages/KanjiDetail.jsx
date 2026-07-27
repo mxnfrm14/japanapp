@@ -10,18 +10,6 @@ const formatList = (value) => {
   return value.join(" · ");
 };
 
-const formatStructuredValue = (value) => {
-  if (value === null || value === undefined || value === "") {
-    return "—";
-  }
-
-  if (typeof value === "string") {
-    return value;
-  }
-
-  return JSON.stringify(value, null, 2);
-};
-
 function DetailRow({ label, children }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-surface p-4 dark:border-gray-700">

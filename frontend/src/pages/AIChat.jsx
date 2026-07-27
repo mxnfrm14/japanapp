@@ -33,15 +33,6 @@ export default function AIChat({ isPanel, aiPrompt }) {
     scrollToBottom()
   }, [messages])
 
-  useEffect(() => {
-    if (!aiPrompt || aiPrompt === lastAutoPromptRef.current) {
-      return
-    }
-
-    lastAutoPromptRef.current = aiPrompt
-    void sendMessage(aiPrompt)
-  }, [aiPrompt])
-
   const extractReplyText = (data) => {
     if (typeof data === 'string') {
       return data
@@ -108,6 +99,22 @@ export default function AIChat({ isPanel, aiPrompt }) {
       setIsSending(false)
     }
   }
+
+  // Keep a stable handle on the latest sendMessage so the auto-prompt effect
+  // only re-runs when aiPrompt itself changes.
+  const sendMessageRef = useRef(sendMessage)
+  useEffect(() => {
+    sendMessageRef.current = sendMessage
+  })
+
+  useEffect(() => {
+    if (!aiPrompt || aiPrompt === lastAutoPromptRef.current) {
+      return
+    }
+
+    lastAutoPromptRef.current = aiPrompt
+    void sendMessageRef.current(aiPrompt)
+  }, [aiPrompt])
 
   const handleSend = async (e) => {
     e.preventDefault()

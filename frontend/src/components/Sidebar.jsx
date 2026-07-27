@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../contexts/useTheme";
 import { HouseIcon, CardsIcon, BookBookmarkIcon, GearIcon, SparkleIcon, UserIcon, SunIcon, MoonIcon } from '@phosphor-icons/react'
 
 const links = [

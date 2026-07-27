@@ -9,22 +9,20 @@ export default function Search({ query, isOpen, onClose, anchorRef }) {
 	const containerRef = useRef(null)
 	const hasResults = Array.isArray(data) && data.length > 0
 
-	useEffect(() => {
+	// Reset the highlighted row during render (rather than in an effect) whenever
+	// the panel opens/closes or a new set of results comes in.
+	const resultsKey = `${isOpen}|${query}|${hasResults}|${isLoading}`
+	const [prevResultsKey, setPrevResultsKey] = useState(resultsKey)
+	if (prevResultsKey !== resultsKey) {
+		setPrevResultsKey(resultsKey)
 		if (!isOpen) {
 			setSelectedIndex(-1)
-		}
-	}, [isOpen])
-
-	useEffect(() => {
-		if (hasResults) {
+		} else if (hasResults) {
 			setSelectedIndex(0)
-			return
-		}
-
-		if (!isLoading) {
+		} else if (!isLoading) {
 			setSelectedIndex(-1)
 		}
-	}, [hasResults, isLoading, query])
+	}
 
 	useEffect(() => {
 		const handleKey = (e) => {

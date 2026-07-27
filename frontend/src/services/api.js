@@ -33,7 +33,7 @@ const handleUnauthorized = () => {
 
 const request = async (path, options = {}) => {
   const { params, ...fetchOptions } = options
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}${buildQueryString(params)}`, {
     ...fetchOptions,
     headers: buildHeaders(fetchOptions.headers),
   })
@@ -60,10 +60,7 @@ const request = async (path, options = {}) => {
 }
 
 const apiClient = {
-  get: (path, options = {}) => {
-    const { params, ...requestOptions } = options
-    return request(`${path}${buildQueryString(params)}`, { ...requestOptions, method: 'GET' })
-  },
+  get: (path, options = {}) => request(path, { ...options, method: 'GET' }),
   post: (path, body, options = {}) =>
     request(path, {
       ...options,
