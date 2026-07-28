@@ -10,6 +10,7 @@ def fetch_vocabulary(
     limit: int,
     jlpt: Optional[int] = None,
     tag: Optional[str] = None,
+    order: str = "desc",
 ) -> tuple[list[dict[str, Any]], bool]:
     """Fetch paginated vocabulary with optional JLPT and tag filters."""
     offset = (page - 1) * limit
@@ -30,7 +31,8 @@ def fetch_vocabulary(
         query += " AND tags @> %s"
         params.append([tag])
 
-    query += " ORDER BY frequency_rank ASC NULLS LAST, japanese ASC, created_at ASC"
+    direction = "DESC" if order == "desc" else "ASC"
+    query += f" ORDER BY difficulty_level {direction} NULLS LAST, frequency_rank ASC NULLS LAST, japanese ASC"
     query += f" LIMIT {request_limit} OFFSET {offset}"
 
     with get_db_cursor() as cur:
