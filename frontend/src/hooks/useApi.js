@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '../services/api'
 
 export const useFetchDashboard = () => {
@@ -32,6 +32,27 @@ export const useFetchVocabularyWithFilters = ({ page = 1, limit = 20, jlpt, tag 
       })
       return response.data
     },
+  })
+}
+
+/**
+ * Paginated vocabulary for infinite scrolling.
+ *
+ * `order` (difficulty_level asc/desc) and `tag` are part of the query key, so
+ * changing either starts a fresh fetch from page 1 instead of appending to the
+ * previous ordering.
+ */
+export const useInfiniteVocabulary = ({ limit = 50, order, tag } = {}) => {
+  return useInfiniteQuery({
+    queryKey: ['vocabulary-infinite', limit, order ?? null, tag ?? null],
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      const response = await apiClient.get('/vocabulary/list', {
+        params: { page: pageParam, limit, order, tag },
+      })
+      return response.data
+    },
+    getNextPageParam: (lastPage, allPages) => (lastPage?.has_more ? allPages.length + 1 : undefined),
   })
 }
 
