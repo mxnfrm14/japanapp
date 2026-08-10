@@ -10,6 +10,7 @@ import KanjiDetail from './pages/KanjiDetail'
 import Vocabulary from './pages/Vocabulary'
 import VocabularyDetail from './pages/VocabularyDetail'
 import Flashcards from './pages/Flashcards'
+import Diary from './pages/Diary'
 import AIChat from './pages/AIChat'
 import Settings from './pages/Settings'
 import Layout from './components/Layout'
@@ -105,6 +106,16 @@ function App() {
               </ProtectedRoute>
             )}
             />
+
+            <Route path="/diary" element={(
+              <ProtectedRoute>
+                <Layout>
+                  <Diary />
+                </Layout>
+              </ProtectedRoute>
+            )}
+            />
+            
 
             <Route path="/ai" element={(
               <ProtectedRoute>

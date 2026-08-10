@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import apiClient from '../services/api'
+import React, { useMemo, useState } from 'react'
+import { useFetchKana } from '../hooks/useApi'
 
 const tabOptions = [
   { key: 'hiragana', label: 'Hiragana' ,jplabel: 'ひらがな' },
@@ -155,44 +155,12 @@ function KanaSection({ title, description, rows, columns = 5 }) {
 
 export default function Kana() {
   const [activeTab, setActiveTab] = useState('hiragana')
-  const [kanaRows, setKanaRows] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
 
-  useEffect(() => {
-    let isActive = true
+  // Each syllabary is cached under its own key, so flipping tabs — or leaving the
+  // page and coming back — reuses the already-fetched rows.
+  const { data, isPending, isError, error } = useFetchKana(activeTab)
 
-    const loadKana = async () => {
-      setIsLoading(true)
-      setError('')
-
-      try {
-        const response = await apiClient.get(`/kana/${activeTab}`)
-
-        if (!isActive) {
-          return
-        }
-
-        setKanaRows(Array.isArray(response.data) ? response.data : [])
-      } catch (requestError) {
-        if (!isActive) {
-          return
-        }
-
-        setError(requestError instanceof Error ? requestError.message : 'Failed to load kana')
-      } finally {
-        if (isActive) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    loadKana()
-
-    return () => {
-      isActive = false
-    }
-  }, [activeTab])
+  const kanaRows = useMemo(() => data ?? [], [data])
 
   const visibleRows = useMemo(
     () => kanaRows.filter((row) => row.group_name !== 'special'),
@@ -211,12 +179,16 @@ export default function Kana() {
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-6 flex flex-col gap-4">
-        <div>
-          <h1 className="font-display text-3xl text-text-primary md:text-4xl">Kana 仮名</h1>
-          <p className="mt-2 max-w-3xl text-sm text-text-secondary md:text-base">
-            Browse kana charts in reading order, with separate tables for youon and the voiced and semi-voiced groups.
+        <header>
+          <div>
+          <h1 className="font-display text-3xl font-bold text-text-primary">
+            Kana <span className="font-cjk text-2xl text-text-secondary">仮名</span>
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            Learn the Japanese syllabaries: Hiragana and Katakana.
           </p>
         </div>
+        </header>
 
         <div className="inline-flex w-full rounded-xl bg-bg-card p-1 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 sm:w-fit">
           {tabOptions.map((tab) => {
@@ -237,13 +209,13 @@ export default function Kana() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isPending ? (
         <div className="rounded-3xl border border-gray-200 bg-bg-card p-8 text-center text-text-secondary shadow-sm dark:border-gray-700">
           Loading {activeTab}...
         </div>
-      ) : error ? (
+      ) : isError ? (
         <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-red-700 shadow-sm dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
-          {error}
+          {error instanceof Error ? error.message : 'Failed to load kana'}
         </div>
       ) : (
         <div className="space-y-6">

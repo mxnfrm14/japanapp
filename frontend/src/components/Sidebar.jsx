@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useTheme } from "../contexts/useTheme";
-import { HouseIcon, CardsIcon, BookBookmarkIcon, GearIcon, SparkleIcon, UserIcon, SunIcon, MoonIcon } from '@phosphor-icons/react'
+import { HouseIcon, CardsIcon, BookBookmarkIcon, GearIcon, SparkleIcon, UserIcon, SunIcon, MoonIcon, NotebookIcon } from '@phosphor-icons/react'
 
 const links = [
   { to: '/',           label: 'Home',       icon: <HouseIcon size={20} weight="bold" />,       jptext: 'ホーム' },
@@ -9,6 +9,7 @@ const links = [
   { to: '/vocabulary', label: 'Vocabulary', icon: <BookBookmarkIcon size={20} weight="bold" />, jptext: '単語' },
   { to: '/kana',       label: 'Kana',       icon: 'あ',                                         jptext: '仮名' },
   { to: '/kanji',      label: 'Kanji',      icon: '学',                                         jptext: '漢字' },
+  { to: '/diary',      label: 'Diary',      icon: <NotebookIcon size={32} weight="bold"/>,                   jptext: '日記' },
 ]
 
 function NavLabelSwap({ jptext, label, hovered }) {

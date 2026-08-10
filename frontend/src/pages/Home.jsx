@@ -1,16 +1,24 @@
 import React from "react";
+import DailyWordCard from "../components/DailyWordCard";
 
 export default function Home() {
   return (
     <div className="max-w-4xl mx-auto">
       <header className="mb-6">
-        <h1 className="font-display text-[2rem] text-text-primary">
-          Welcome to JapanApp
-        </h1>
-        <p className="text-text-secondary">
-          A gentle place to learn kana, kanji and vocabulary.
-        </p>
+        
+        <div>
+          <h1 className="font-display text-3xl font-bold text-text-primary">
+            Welcome to JapanApp <span className="font-cjk text-2xl text-text-secondary">日本語学習アプリ</span>
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            A gentle place to learn kana, kanji and vocabulary.
+          </p>
+        </div>
       </header>
+
+      <div className="mb-6">
+        <DailyWordCard />
+      </div>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-lg p-4 shadow-sm bg-surface">

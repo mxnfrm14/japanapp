@@ -1,5 +1,6 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '../services/api'
+import { resolveDailyWord } from '../services/dailyWord'
 
 export const useFetchDashboard = () => {
   return useQuery({
@@ -8,6 +9,49 @@ export const useFetchDashboard = () => {
       const response = await apiClient.get('/dashboard/summary')
       return response.data
     },
+  })
+}
+
+/**
+ * Reference data (kana, kanji, vocabulary) never changes between sessions, so it
+ * is cached aggressively: switching pages reuses whatever is already loaded
+ * instead of hitting the database again.
+ */
+const REFERENCE_STALE_TIME = 1000 * 60 * 60 * 24
+
+/** `syllabary` is 'hiragana' or 'katakana'; each is cached separately. */
+export const useFetchKana = (syllabary) => {
+  return useQuery({
+    queryKey: ['kana', syllabary],
+    enabled: !!syllabary,
+    queryFn: async () => {
+      const response = await apiClient.get(`/kana/${syllabary}`)
+      return Array.isArray(response.data) ? response.data : []
+    },
+    staleTime: REFERENCE_STALE_TIME,
+  })
+}
+
+/**
+ * Paginated kanji for infinite scrolling.
+ *
+ * `jlptLevel` filters server-side and is part of the query key, so picking a
+ * level starts a fresh fetch from page 1 rather than appending to the previous
+ * filter. The backend orders by `frequency_rank ASC` — there is no `order`
+ * param on `/kanji/list`, so the list order is fixed.
+ */
+export const useInfiniteKanji = ({ limit = 50, jlptLevel } = {}) => {
+  return useInfiniteQuery({
+    queryKey: ['kanji-infinite', limit, jlptLevel ?? null],
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      const response = await apiClient.get('/kanji/list', {
+        params: { page: pageParam, limit, jlpt_level: jlptLevel },
+      })
+      return response.data
+    },
+    getNextPageParam: (lastPage, allPages) => (lastPage?.has_more ? allPages.length + 1 : undefined),
+    staleTime: REFERENCE_STALE_TIME,
   })
 }
 
@@ -53,6 +97,7 @@ export const useInfiniteVocabulary = ({ limit = 50, order, tag } = {}) => {
       return response.data
     },
     getNextPageParam: (lastPage, allPages) => (lastPage?.has_more ? allPages.length + 1 : undefined),
+    staleTime: REFERENCE_STALE_TIME,
   })
 }
 
@@ -63,6 +108,22 @@ export const useFetchVocabularyTags = () => {
       const response = await apiClient.get('/vocabulary/tags')
       return response.data
     },
+    staleTime: REFERENCE_STALE_TIME,
+  })
+}
+
+/**
+ * Word of the day. The pick itself lives in `services/dailyWord.js`; `dateKey`
+ * and `nonce` are in the query key so a new day — or a reroll — refetches while
+ * everything within one day is served from cache.
+ */
+export const useDailyWord = ({ dateKey, nonce = 0 } = {}) => {
+  return useQuery({
+    queryKey: ['daily-word', dateKey, nonce],
+    enabled: !!dateKey,
+    queryFn: () => resolveDailyWord({ dateKey, nonce }),
+    staleTime: 1000 * 60 * 60,
+    retry: 1,
   })
 }
 
