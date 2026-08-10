@@ -1,7 +1,13 @@
 {
-	"dependencies": {
-		"unofficial-jisho-api": "^2.3.4",
-		"@supabase/supabase-js": "^2.105.3",
-		"dotenv": "^17.4.2"
-	}
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.3",
+    "csv-parse": "^7.0.0",
+    "dotenv": "^17.4.2",
+    "unofficial-jisho-api": "^2.3.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "cheerio": "1.0.0-rc.12"
+    }
+  }
 }
