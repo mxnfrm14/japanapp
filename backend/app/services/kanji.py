@@ -10,6 +10,7 @@ def fetch_kanji(
     limit: int,
     jlpt_level: int | None = None,
     radical: str | None = None,
+    order: str = "desc",
 ) -> tuple[list[dict[str, Any]], bool]:
     """Fetch paginated kanji rows with optional JLPT/radical filters."""
     offset = (page - 1) * limit
@@ -44,7 +45,11 @@ def fetch_kanji(
         query += " AND radical = %s"
         params.append(radical)
 
-    query += " ORDER BY frequency_rank ASC NULLS LAST, kanji ASC, created_at ASC"
+    direction = "DESC" if order == "desc" else "ASC"
+    query += (
+        f" ORDER BY jlpt_level {direction} NULLS LAST,"
+        " frequency_rank ASC NULLS LAST, kanji ASC, created_at ASC"
+    )
     query += " LIMIT %s OFFSET %s"
     params.extend([request_limit, offset])
 

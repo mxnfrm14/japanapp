@@ -15,15 +15,21 @@ def fetch_kanji_list(
     limit: int = Query(default=20, ge=1, le=100),
     jlpt_level: int | None = Query(default=None, ge=1, le=5),
     radical: str | None = Query(default=None),
+    order: str = Query(default="desc", pattern="^(asc|desc)$"),
     token: str = Depends(get_auth_token),
 ):
-    """Fetch a paginated kanji list with optional filters."""
+    """Fetch a paginated kanji list with optional filters.
+
+    - `jlpt_level` / `radical`: filters.
+    - `order`: sort direction by JLPT level, `desc` (N5 -> N1) or `asc`.
+    """
     try:
         items, has_more = fetch_kanji(
             page=page,
             limit=limit,
             jlpt_level=jlpt_level,
             radical=radical,
+            order=order,
         )
         return KanjiListResponse(items=items, page=page, limit=limit, has_more=has_more)
     except Exception as e:
