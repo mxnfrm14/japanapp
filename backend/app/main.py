@@ -6,6 +6,7 @@ import logging
 from app.config import settings
 from app.routes.ai import ai_router
 from app.routes.auth import router as auth_router
+from app.routes.diary import diary_router
 from app.routes.kanji import kanji_router
 from app.routes.kana import kana_router
 from app.routes.search import search_router
@@ -28,6 +29,7 @@ app = FastAPI(
 
 app.include_router(auth_router)
 app.include_router(ai_router)
+app.include_router(diary_router)
 app.include_router(kana_router)
 app.include_router(kanji_router)
 app.include_router(search_router)

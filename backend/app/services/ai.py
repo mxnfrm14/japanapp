@@ -30,6 +30,64 @@ def generate_chat_reply(
     }
 
 
+def generate_json_reply(
+    messages: list[dict[str, str]],
+    model: str | None = None,
+    temperature: float | None = None,
+    max_tokens: int | None = None,
+    timeout: float = 60.0,
+) -> dict[str, Any]:
+    """Return a parsed JSON object from a non-streaming, JSON-mode Mistral completion.
+
+    Raises TimeoutError on a request timeout so callers can map it to a 504
+    distinctly from other failures (502).
+    """
+    api_key = settings.mistral_api_key.strip()
+    if not api_key:
+        raise RuntimeError("MISTRAL_API_KEY is not configured")
+
+    payload: dict[str, Any] = {
+        "model": model or DEFAULT_MISTRAL_MODEL,
+        "messages": messages,
+        "response_format": {"type": "json_object"},
+    }
+
+    if temperature is not None:
+        payload["temperature"] = temperature
+    if max_tokens is not None:
+        payload["max_tokens"] = max_tokens
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            response = client.post(MISTRAL_CHAT_URL, json=payload, headers=headers)
+    except httpx.TimeoutException as exc:
+        raise TimeoutError("AI service timed out") from exc
+    except httpx.RequestError as exc:
+        raise RuntimeError("AI service is unreachable") from exc
+
+    if response.status_code >= 400:
+        raise RuntimeError(_extract_error_message(response))
+
+    body = response.json()
+    choices = body.get("choices") or []
+    if not choices:
+        raise RuntimeError("AI service returned an empty response")
+
+    content = (choices[0].get("message") or {}).get("content") or ""
+    if not content.strip():
+        raise RuntimeError("AI service returned an empty response")
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("AI service returned invalid JSON") from exc
+
+
 def stream_chat_reply(
     messages: list[dict[str, str]],
     model: str | None = None,
