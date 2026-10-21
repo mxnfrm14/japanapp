@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowClockwiseIcon,
+  CaretDownIcon,
   CaretLeftIcon,
   CaretRightIcon,
   CheckCircleIcon,
   FireIcon,
   NotebookIcon,
+  PencilSimpleIcon,
   SparkleIcon,
   TrashIcon,
 } from '@phosphor-icons/react'
@@ -29,7 +31,6 @@ import {
   charDiff,
   countDiffChanges,
   detectRegister,
-  summariseStyle,
 } from '../utils/japaneseStyle'
 
 const STYLE_OPTIONS = [
@@ -116,10 +117,6 @@ export default function Diary() {
   }
 
   const liveRegister = useMemo(() => detectRegister(text), [text])
-  const habitualStyle = useMemo(
-    () => summariseStyle(entries.filter((entry) => entry.date !== dateKey)),
-    [entries, dateKey],
-  )
   const streak = useMemo(() => calculateStreak(entries), [entries])
 
   // A correction describes the text it was run against; editing afterwards
@@ -133,17 +130,9 @@ export default function Diary() {
     setError('')
 
     try {
-      const recentEntries = entries
-        .filter((entry) => entry.date !== dateKey && entry.text?.trim())
-        .slice(0, 3)
-        .map((entry) => ({ date: entry.date, text: entry.text }))
-
-      const result = await requestCorrection({
-        text,
-        styleMode,
-        habitualRegister: habitualStyle.register,
-        recentEntries,
-      })
+      // The server pulls this writer's recent entries itself from `entryDate`,
+      // for habitual-register detection and voice context.
+      const result = await requestCorrection({ text, styleMode, entryDate: dateKey })
 
       const stored = { ...result, sourceText: text }
       setCorrection(stored)
@@ -377,24 +366,32 @@ function SaveIndicator({ state }) {
   return null
 }
 
-function CorrectionPanel({ correction, isStale, onAccept }) {
+/**
+ * `embedded` drops the outer card chrome so the panel can sit inside an
+ * accordion row without nesting one bordered box in another. `onAccept` is
+ * omitted when reviewing a past day — there is nothing to apply it to.
+ */
+function CorrectionPanel({ correction, isStale = false, onAccept, embedded = false }) {
   const segments = useMemo(
     () => charDiff(correction.sourceText || '', correction.corrected),
     [correction.sourceText, correction.corrected],
   )
   const changeCount = countDiffChanges(segments)
-  const isClean = changeCount === 0 && correction.notes.length === 0
+  // Corrections loaded from the backend are stored jsonb and bypass the zod
+  // guard that fresh results pass through, so don't assume `notes` is present.
+  const notes = correction.notes ?? []
+  const isClean = changeCount === 0 && notes.length === 0
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <section className={`flex flex-col gap-4 ${embedded ? '' : 'rounded-xl border border-border bg-surface p-4 shadow-sm'}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
-          <SparkleIcon size={18} weight="fill" className="text-primary" />
+        <h2 className={`flex items-center gap-2 font-display font-semibold text-text-primary ${embedded ? 'text-sm' : 'text-lg'}`}>
+          <SparkleIcon size={embedded ? 16 : 18} weight="fill" className="text-primary" />
           Correction
         </h2>
         <div className="flex items-center gap-2">
           <RegisterBadge register={correction.detected_register} />
-          {!isClean ? (
+          {!isClean && onAccept ? (
             <button type="button" onClick={onAccept} className="btn btn-sm btn-outline">
               Apply to my entry
             </button>
@@ -438,9 +435,9 @@ function CorrectionPanel({ correction, isStale, onAccept }) {
         </div>
       )}
 
-      {correction.notes.length > 0 ? (
+      {notes.length > 0 ? (
         <ol className="flex flex-col gap-3">
-          {correction.notes.map((note, index) => (
+          {notes.map((note, index) => (
             <li key={index} className="flex gap-3 rounded-lg border border-border p-3">
               <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-xs font-bold text-primary">
                 {index + 1}
@@ -471,6 +468,10 @@ function CorrectionPanel({ correction, isStale, onAccept }) {
 }
 
 function EntryList({ entries, activeDate, onSelect }) {
+  // One row open at a time — the whole point is scanning back through days, and
+  // a stack of expanded corrections buries the list.
+  const [expandedDate, setExpandedDate] = useState(null)
+
   const written = entries.filter((entry) => entry.text?.trim())
 
   if (written.length === 0) {
@@ -487,30 +488,85 @@ function EntryList({ entries, activeDate, onSelect }) {
       <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-text-muted">
         Past entries
       </h2>
-      {written.map((entry) => (
-        <button
-          key={entry.id}
-          type="button"
-          onClick={() => onSelect(entry.date)}
-          className={`rounded-lg border p-3 text-left transition ${
-            entry.date === activeDate
-              ? 'border-primary bg-primary-subtle'
-              : 'border-border bg-surface hover:border-primary'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-text-secondary">{formatDateKey(entry.date)}</span>
-            {entry.correction ? (
-              <span className="text-xs text-text-muted">
-                {entry.correction.notes?.length || 0} note{entry.correction.notes?.length === 1 ? '' : 's'}
-              </span>
-            ) : (
-              <span className="text-xs text-text-muted">unchecked</span>
-            )}
-          </div>
-          <p className="mt-1 truncate font-cjk text-base text-text-primary">{entry.text}</p>
-        </button>
-      ))}
+
+      {written.map((entry) => {
+        const isExpanded = entry.date === expandedDate
+        const noteCount = entry.correction?.notes?.length || 0
+
+        return (
+          <article
+            key={entry.id}
+            className={`overflow-hidden rounded-lg border hover:bg-surface-raised  ${
+              entry.date === activeDate ? 'border-primary bg-surface' : 'border-border bg-surface'
+            }`}
+            onClick={() => setExpandedDate(isExpanded ? null : entry.date)}
+          >
+            <h3>
+              <button
+                type="button"
+                // onClick={() => setExpandedDate(isExpanded ? null : entry.date)}
+                aria-expanded={isExpanded}
+                aria-controls={`entry-panel-${entry.date}`}
+                className="flex w-full items-start gap-3 p-3 text-left hover:bg-surface-raised"
+              >
+                <CaretDownIcon
+                  size={16}
+                  weight="bold"
+                  className={`mt-0.5 shrink-0 text-text-muted transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                />
+
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-text-secondary">{formatDateKey(entry.date)}</span>
+                    {entry.correction ? (
+                      <span className={`text-xs ${noteCount > 0 ? 'text-text-muted' : 'text-success'}`}>
+                        {noteCount > 0 ? `${noteCount} note${noteCount === 1 ? '' : 's'}` : 'no corrections'}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-text-muted">unchecked</span>
+                    )}
+                  </span>
+                  <span className={`mt-1 block font-cjk text-base text-text-primary ${isExpanded ? '' : 'truncate'}`}>
+                    {entry.text}
+                  </span>
+                </span>
+              </button>
+            </h3>
+
+            {isExpanded ? (
+              <div id={`entry-panel-${entry.date}`} className="flex flex-col gap-4 border-t border-border p-4">
+                <div>
+                  <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    What you wrote
+                  </div>
+                  <p className="whitespace-pre-wrap font-cjk text-lg leading-8 text-text-primary">{entry.text}</p>
+                </div>
+
+                {entry.correction ? (
+                  <CorrectionPanel correction={entry.correction} embedded />
+                ) : (
+                  <p className="rounded-lg bg-surface-raised px-3 py-2 text-sm text-text-secondary">
+                    This entry was never checked. Open it to run a correction.
+                  </p>
+                )}
+
+                {entry.date !== activeDate ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelect(entry.date)}
+                    className="btn btn-sm btn-outline self-start gap-2"
+                  >
+                    <PencilSimpleIcon size={14} />
+                    Open in editor
+                  </button>
+                ) : (
+                  <span className="self-start text-xs text-text-muted">You are editing this day above.</span>
+                )}
+              </div>
+            ) : null}
+          </article>
+        )
+      })}
     </section>
   )
 }

@@ -1,18 +1,18 @@
 // Persistence for diary entries.
 //
-// There is no `diary` table in supabase/migrations/init_japanapp.sql and no
-// /diary route on the backend yet, so entries live in localStorage for now.
-// Every function here is async and returns the same shapes a REST call would,
-// so swapping in `apiClient` later is a change to this file only — no page or
-// component touches localStorage directly.
+// Entries live on the backend (`/diary/*`, one row per user per calendar day).
+// This module is the only place that talks to those routes — no page or
+// component calls the API for diary data directly.
 //
-// Storage is namespaced per user id so two accounts on one browser don't read
-// each other's entries.
+// `style_mode` deliberately stays in localStorage: it is a per-user preference
+// rather than per-entry data, and is not part of the backend contract. Its key
+// is namespaced by user id so two accounts on one browser keep their own
+// setting.
 
+import apiClient from './api'
 import { useAuthStore } from '../stores/authStore'
 
 const STORAGE_VERSION = 'v1'
-const ENTRIES_KEY = 'japanapp.diary.entries'
 const STYLE_MODE_KEY = 'japanapp.diary.styleMode'
 
 export const STYLE_MODE = {
@@ -25,26 +25,15 @@ const currentUserId = () => useAuthStore.getState().user?.id || 'anon'
 
 const scopedKey = (base) => `${base}.${STORAGE_VERSION}.${currentUserId()}`
 
-const readJson = (key, fallback) => {
-  try {
-    const raw = localStorage.getItem(key)
-    if (!raw) return fallback
-    const parsed = JSON.parse(raw)
-    return parsed ?? fallback
-  } catch {
-    return fallback
-  }
-}
-
-const writeJson = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-    return true
-  } catch {
-    // Quota exceeded or storage disabled — the caller surfaces this as an error.
-    return false
-  }
-}
+/** Backend rows are snake_case; the rest of the frontend is camelCase. */
+const mapEntry = (entry) => ({
+  id: entry.id,
+  date: entry.date,
+  text: entry.text,
+  correction: entry.correction,
+  createdAt: entry.created_at,
+  updatedAt: entry.updated_at,
+})
 
 /** Local calendar date as YYYY-MM-DD (never UTC — a diary day is a local day). */
 export const toDateKey = (date = new Date()) => {
@@ -71,47 +60,54 @@ export const formatDateKey = (dateKey) => {
   })
 }
 
-/** All entries, newest first. */
+const PAGE_LIMIT = 100 // the backend's `Query(le=100)` ceiling
+const MAX_PAGES = 50 // ~13 years of daily writing; a stop against a runaway has_more
+
+/**
+ * All entries, newest first.
+ *
+ * Deliberately pages through the whole history rather than returning one page:
+ * the streak count, the past-entries list, and the habitual-register lookup
+ * that shapes the AI prompt all need the full set, not a window of it.
+ */
 export async function listEntries() {
-  const entries = readJson(scopedKey(ENTRIES_KEY), [])
-  if (!Array.isArray(entries)) return []
-  return [...entries].sort((a, b) => b.date.localeCompare(a.date))
+  const items = []
+
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const { data } = await apiClient.get('/diary/list', { params: { page, limit: PAGE_LIMIT } })
+    items.push(...(data.items || []))
+    if (!data.has_more) break
+  }
+
+  // Sorted here rather than trusted from the wire — callers treat "newest
+  // first" as this function's contract (EntryList order, the recent-entries
+  // slice fed to the corrector).
+  return items.map(mapEntry).sort((a, b) => b.date.localeCompare(a.date))
 }
 
 export async function getEntry(dateKey) {
-  const entries = await listEntries()
-  return entries.find((entry) => entry.date === dateKey) || null
+  try {
+    const { data } = await apiClient.get(`/diary/${dateKey}`)
+    return mapEntry(data)
+  } catch (error) {
+    // A day that was never written is a normal state, not a failure.
+    if (error.response?.status === 404) return null
+    throw error
+  }
 }
 
 /**
- * Create or replace the entry for a given day. One entry per calendar day —
- * writing again the same day edits it rather than stacking a second record.
+ * Create or replace the entry for a given day. PUT upserts on
+ * (user_id, entry_date), so the editor's autosave can fire repeatedly without
+ * stacking duplicate rows.
  */
 export async function saveEntry({ date, text, correction = null }) {
-  const entries = await listEntries()
-  const now = new Date().toISOString()
-  const existing = entries.find((entry) => entry.date === date)
-
-  const saved = {
-    id: existing?.id || `${date}-${Date.now()}`,
-    date,
-    text,
-    correction,
-    createdAt: existing?.createdAt || now,
-    updatedAt: now,
-  }
-
-  const next = [saved, ...entries.filter((entry) => entry.date !== date)]
-  if (!writeJson(scopedKey(ENTRIES_KEY), next)) {
-    throw new Error('Could not save the entry — browser storage is full or unavailable.')
-  }
-
-  return saved
+  const { data } = await apiClient.put(`/diary/${date}`, { text, correction })
+  return mapEntry(data)
 }
 
 export async function deleteEntry(dateKey) {
-  const entries = await listEntries()
-  writeJson(scopedKey(ENTRIES_KEY), entries.filter((entry) => entry.date !== dateKey))
+  await apiClient.delete(`/diary/${dateKey}`)
 }
 
 export function getStyleMode() {

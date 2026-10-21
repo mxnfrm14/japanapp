@@ -67,6 +67,15 @@ const apiClient = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+  put: (path, body, options = {}) =>
+    request(path, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  // A 204 has no content-type, so `request` falls through to `response.text()`
+  // and resolves with an empty string — no special-casing needed here.
+  delete: (path, options = {}) => request(path, { ...options, method: 'DELETE' }),
 }
 
 export default apiClient
