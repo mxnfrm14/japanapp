@@ -2,6 +2,7 @@
 
 from typing import Any
 
+import httpx
 from fastapi import HTTPException, status
 
 from app.services.profile import fetch_profile
@@ -25,6 +26,25 @@ def login_with_email(email: str, password: str) -> dict[str, Any]:
 
 	if response.status_code >= 400:
 		raise HTTPException(status_code=response.status_code, detail=_get_error_detail(response))
+
+	data = response.json()
+	return {"session": data, "user": data.get("user")}
+
+
+def refresh_session(refresh_token: str) -> dict[str, Any]:
+	try:
+		response = supabase_auth_request(
+			"POST",
+			"/auth/v1/token?grant_type=refresh_token",
+			payload={"refresh_token": refresh_token},
+		)
+	except httpx.RequestError:
+		raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Session renewal unavailable") from None
+
+	if response.status_code >= 400:
+		if response.status_code in (400, 401, 403):
+			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired. Please sign in again.")
+		raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Session renewal unavailable")
 
 	data = response.json()
 	return {"session": data, "user": data.get("user")}

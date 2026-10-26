@@ -16,6 +16,7 @@ import Settings from './pages/Settings'
 import Profile from './pages/Profile'
 import Layout from './components/Layout'
 import { ThemeProvider } from './contexts/ThemeContext'
+import SessionExpiryDialog from './components/SessionExpiryDialog'
 
 function ProtectedRoute({ children }) {
   const { user, isLoading } = useAuthStore()
@@ -41,6 +42,7 @@ function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
+        <SessionExpiryDialog />
         <div className="min-h-screen bg-bg">
           <Routes>
             <Route path="/login" element={<LoginPage />} />

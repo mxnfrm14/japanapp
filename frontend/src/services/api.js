@@ -1,8 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000'
 
-const buildHeaders = (headers = {}) => {
-  const token = localStorage.getItem('authToken')
+let authHandlers = {}
 
+export const configureAuthHandlers = (handlers) => {
+  authHandlers = handlers
+}
+
+const buildHeaders = (headers = {}, token) => {
   return {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -25,17 +29,12 @@ const buildQueryString = (params = {}) => {
   return queryString ? `?${queryString}` : ''
 }
 
-const handleUnauthorized = () => {
-  localStorage.removeItem('authToken')
-  localStorage.removeItem('authRefreshToken')
-  window.location.href = '/login'
-}
-
-const request = async (path, options = {}) => {
-  const { params, ...fetchOptions } = options
+const request = async (path, options = {}, retried = false) => {
+  const { params, auth = true, ...fetchOptions } = options
+  const token = auth ? localStorage.getItem('authToken') : null
   const response = await fetch(`${API_BASE_URL}${path}${buildQueryString(params)}`, {
     ...fetchOptions,
-    headers: buildHeaders(fetchOptions.headers),
+    headers: buildHeaders(fetchOptions.headers, token),
   })
 
   const contentType = response.headers.get('content-type') || ''
@@ -46,8 +45,15 @@ const request = async (path, options = {}) => {
       : await response.text()
 
   if (!response.ok) {
-    if (response.status === 401) {
-      handleUnauthorized()
+    if (response.status === 401 && auth && token) {
+      const currentToken = localStorage.getItem('authToken')
+      // A concurrent request may already have renewed this token.
+      if (!retried && currentToken && (
+        currentToken !== token || await authHandlers.onUnauthorized?.()
+      )) {
+        return request(path, options, true)
+      }
+      if (retried) authHandlers.onSessionExpired?.()
     }
 
     const error = new Error(data?.detail || data?.message || 'Request failed')

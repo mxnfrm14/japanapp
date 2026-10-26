@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter, Depends
 
-from app.models.auth import LoginRequest, SignUpRequest
+from app.models.auth import LoginRequest, RefreshRequest, SignUpRequest
 from app.dependencies.auth import get_current_user
-from app.services.auth import login_with_email, signup_with_email
+from app.services.auth import login_with_email, refresh_session, signup_with_email
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -23,6 +23,11 @@ def signup(payload: SignUpRequest):
 @router.get("/me")
 def me(user: dict = Depends(get_current_user)):
 	return {"user": user}
+
+
+@router.post("/refresh")
+def refresh(payload: RefreshRequest):
+	return refresh_session(payload.refresh_token)
 
 
 @router.post("/logout")
