@@ -30,7 +30,7 @@ export default function Profile() {
           <h1 className="font-display text-3xl text-text-primary">{displayName}</h1>
           <p className="mt-1 break-all text-sm text-text-secondary">{user?.email}</p>
         </div>
-        <Link to="/settings" className="inline-flex items-center gap-2 rounded-2xl bg-surface px-4 py-3 text-sm font-semibold text-text-primary hover:text-primary">
+        <Link to="/settings" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-surface px-4 py-3 text-sm font-semibold text-text-primary hover:text-primary sm:w-auto">
           <GearIcon size={20} /> Settings
         </Link>
       </section>
@@ -48,7 +48,7 @@ export default function Profile() {
               type="button"
               aria-pressed={filter === key}
               onClick={() => setFilter(key)}
-              className={`rounded-2xl px-4 py-2 text-sm font-semibold transition-colors ${filter === key ? 'bg-primary text-text-inverse' : 'bg-surface text-text-secondary hover:text-primary'}`}
+              className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-semibold transition-colors ${filter === key ? 'bg-primary text-text-inverse' : 'bg-surface text-text-secondary hover:text-primary'}`}
             >
               {label}
             </button>
