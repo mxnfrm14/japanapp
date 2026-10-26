@@ -121,13 +121,16 @@ export default function Layout({ children }) {
     : children
 
   return (
-    <div className={`size-full transition-all duration-300 ease-in-out md:pl-26 ${isSidebarExpanded ? 'lg:pl-70' : 'lg:pl-26'}`}>
+    <div
+      className={`size-full transition-all duration-300 ease-in-out md:pl-26 ${isSidebarExpanded ? 'lg:pl-70' : 'lg:pl-26'}`}
+      style={{ '--mobile-nav-clearance': 'calc(96px + env(safe-area-inset-bottom, 0px))' }}
+    >
       <TopNavBar isExpanded={isSidebarExpanded} />
 
       <Sidebar isExpanded={isSidebarExpanded} toggleSidebar={() => setIsSidebarExpanded(!isSidebarExpanded)} />
 
       {/* Main content stays clear of fixed top bar and desktop sidebar */}
-      <main className={`pt-14 md:pt-20 lg:pt-20 p-4 md:p-8 pb-20 md:pb-8 min-h-screen ${showChatLayout ? 'flex gap-6' : ''}`}>
+      <main className={`pt-14 md:pt-20 lg:pt-20 p-4 md:p-8 pb-(--mobile-nav-clearance) md:pb-8 min-h-screen ${showChatLayout ? 'flex gap-6' : ''}`}>
         
         {/* Actual Content Area */}
         <div className={`transition-all duration-300 ${showChatLayout && isChatOpen ? 'w-3/4' : 'w-full'}`}>

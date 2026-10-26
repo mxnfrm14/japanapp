@@ -122,7 +122,7 @@ export default function AIChat({ isPanel, aiPrompt }) {
   }
 
   return (
-    <div className={`flex flex-col ${isPanel ? "h-full w-full bg-bg" : "h-[calc(100vh-160px)] max-w-4xl mx-auto"}`}>
+    <div className={`flex flex-col ${isPanel ? "h-full w-full bg-bg" : "h-[calc(100dvh-56px-var(--mobile-nav-clearance))] md:h-[calc(100vh-160px)] max-w-4xl mx-auto"}`}>
       {!isPanel && (
         <div className="mb-4 shrink-0">
           <h1 className="font-display text-text-primary text-3xl font-bold mb-2">AI Tutor</h1>
@@ -131,7 +131,7 @@ export default function AIChat({ isPanel, aiPrompt }) {
       )}
 
       {/* Chat Messages Area */}
-      <div className={`grow overflow-y-auto ${isPanel ? "p-4" : "rounded-xl bg-bg-card p-4"} flex flex-col gap-4`}>
+      <div className={`min-h-0 grow overflow-y-auto ${isPanel ? "p-4" : "rounded-xl bg-bg-card p-4"} flex flex-col gap-4`}>
         {messages.map((msg) => (
           <div key={msg.id} className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
             <div className={`shrink-0 size-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-primary/20 text-primary' : 'bg-primary text-white'}`}>

@@ -1,35 +1,45 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { HouseIcon, CardsIcon, BookBookmarkIcon , ChatIcon, GearIcon, SparkleIcon, UserIcon, SunIcon, MoonIcon} from '@phosphor-icons/react'
+import { BookOpenIcon, HouseIcon, NotebookIcon, SparkleIcon, UserIcon } from '@phosphor-icons/react'
+
+const destinations = [
+  { to: '/', label: 'Home', icon: HouseIcon },
+  { to: '/diary', label: 'Diary', icon: NotebookIcon },
+  { to: '/ai', label: 'AI Tutor', icon: SparkleIcon },
+  { to: '/vocabulary', label: 'Vocabulary', icon: BookOpenIcon },
+  { to: '/profile', label: 'Profile', icon: UserIcon },
+]
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-4 left-1/2 flex w-[92%] max-w-3xl -translate-x-1/2 transform items-center justify-between rounded-2xl border border-border-color p-3 shadow-lg [background-color:color-mix(in_srgb,var(--bg-primary)_80%,transparent)] backdrop-blur-[8px] lg:hidden">
-      <NavLink to="/" className={({ isActive }) => `flex-1 py-2 text-center text-text-secondary ${isActive ? 'font-semibold' : ''}`}>
-        <HouseIcon size={20} weight="bold" />
-        <div className="text-xs">Home</div>
-      </NavLink>
+    <nav
+      aria-label="Primary navigation"
+      className="fixed bottom-[calc(12px+env(safe-area-inset-bottom,0px))] left-1/2 z-40 grid h-14 w-[calc(100%-24px)] max-w-[448px] -translate-x-1/2 grid-cols-5 items-center gap-1 rounded-2xl border border-border/30 bg-surface/95 px-1 shadow-[var(--shadow-md)] backdrop-blur-md md:hidden"
+    >
+      {destinations.map((destination) => {
+        const { to, label, icon: Icon } = destination
+        const isTutor = to === '/ai'
 
-      <NavLink to="/flashcards" className={({ isActive }) => `flex-1 py-2 text-center text-text-secondary ${isActive ? 'font-semibold' : ''}`}>
-        <CardsIcon size={20} weight="bold" />
-        <div className="text-xs">Flashcards</div>
-      </NavLink>  
-
-      <NavLink to="/ai" className="flex-none mx-2"> 
-        <div className="flex h-16 w-16 -translate-y-[14px] items-center justify-center rounded-[20px] bg-gradient-to-r from-(--accent-red) to-(--accent-red-light) text-white shadow-[var(--shadow-md)]">
-          <SparkleIcon size={32} weight="bold" />
-        </div>
-      </NavLink>
-
-      <NavLink to="/kana" className={({ isActive }) => `flex-1 py-2 text-center text-(--color-text-secondary) ${isActive ? 'font-semibold' : ''}`}>
-        <div>あ</div>
-        <div className="text-xs">Alphabet</div>
-      </NavLink>
-
-      <NavLink to="/profile" className={({ isActive }) => `flex-1 py-2 text-center text-(--color-text-secondary) ${isActive ? 'font-semibold' : ''}`}>
-        <UserIcon size={20} weight="bold" />
-        <div className="text-xs">Profile</div>
-      </NavLink>
+        return (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
+            title={label}
+            className={({ isActive }) => `flex min-w-11 items-center justify-center justify-self-center rounded-xl transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary ${
+              isTutor
+                ? `size-14 -translate-y-3 rounded-2xl bg-linear-to-r from-primary to-primary-hover text-text-inverse shadow-[var(--shadow-primary)] hover:from-primary-hover hover:to-primary-pressed dark:text-text-primary ${isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : ''}`
+                : `h-11 w-full max-w-16 ${isActive ? 'bg-primary-subtle text-primary' : 'text-text-secondary hover:bg-surface-raised hover:text-text-primary'}`
+            }`}
+          >
+            {({ isActive }) => (
+              <>
+                <Icon size={isTutor ? 28 : 22} weight={isActive ? 'fill' : 'bold'} aria-hidden="true" />
+                <span className="sr-only">{label}</span>
+              </>
+            )}
+          </NavLink>
+        )
+      })}
     </nav>
   )
 }
