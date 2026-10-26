@@ -5,6 +5,63 @@ from typing import Any, Optional
 from app.services.db import get_db_cursor
 
 
+def import_vocabulary_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Insert a Jisho word and link its existing kanji in one transaction."""
+    japanese = item["japanese"]
+    with get_db_cursor() as cur:
+        # The initial schema has no UNIQUE constraint on japanese. Serialize
+        # imports of the same word across workers without rewriting seed data.
+        cur.execute(
+            "SELECT pg_advisory_xact_lock(hashtext('jisho_vocabulary'), hashtext(%s))",
+            [japanese],
+        )
+        lookup_query = """
+            SELECT id, japanese, reading, meaning, tags, difficulty_level, frequency_rank
+            FROM public.vocabulary_item
+            WHERE japanese = %s
+            ORDER BY created_at, id
+            LIMIT 1
+        """
+        cur.execute(lookup_query, [japanese])
+        row = cur.fetchone()
+        if row is None:
+            cur.execute(
+                """
+                INSERT INTO public.vocabulary_item (
+                    japanese, reading, meaning, tags, difficulty_level, frequency_rank,
+                    jisho_url, example_sentence, example_translation
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT DO NOTHING
+                RETURNING id, japanese, reading, meaning, tags, difficulty_level, frequency_rank
+                """,
+                [item.get(column) for column in (
+                    "japanese", "reading", "meaning", "tags", "difficulty_level", "frequency_rank",
+                    "jisho_url", "example_sentence", "example_translation",
+                )],
+            )
+            row = cur.fetchone()
+            if row is None:
+                cur.execute(lookup_query, [japanese])
+                row = cur.fetchone()
+
+        if row is None:
+            raise RuntimeError("Could not import vocabulary item")
+
+        # Same relationship and first-character heuristic as 04_link_kanji_vocab.py.
+        cur.execute(
+            """
+            INSERT INTO public.kanji_vocabulary_link (kanji_id, vocabulary_item_id, is_common)
+            SELECT id, %s, kanji = %s
+            FROM public.kanji_item
+            WHERE kanji = ANY(%s)
+            ON CONFLICT (kanji_id, vocabulary_item_id) DO NOTHING
+            """,
+            [row["id"], japanese[0], list(dict.fromkeys(japanese))],
+        )
+
+    return dict(row)
+
+
 def fetch_vocabulary(
     page: int,
     limit: int,

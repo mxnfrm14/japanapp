@@ -3,6 +3,8 @@
 from typing import Any
 
 from app.services.db import get_db_cursor
+from app.services.jisho import fetch_jisho_vocabulary
+from app.services.vocabulary import import_vocabulary_item
 
 
 def _normalize_search_row(row: dict[str, Any], item_type: str) -> dict[str, Any]:
@@ -34,6 +36,42 @@ def search_vocabulary_and_kanji(
     jlpt: int | None = None,
     tag: str | None = None,
     type_filter: str | None = None,
+) -> list[dict[str, Any]]:
+    """Search locally first, importing one Jisho word only when nothing matches."""
+    q = q.strip()
+    if not q:
+        return []
+
+    items = _search_local(q, limit, jlpt, tag, type_filter)
+    if items or type_filter == "kanji":
+        return items
+
+    vocabulary = fetch_jisho_vocabulary(q)
+    if vocabulary is None:
+        return []
+    if jlpt is not None and vocabulary["difficulty_level"] != jlpt:
+        return []
+    if tag and tag not in vocabulary["tags"]:
+        return []
+
+    row = import_vocabulary_item(vocabulary)
+    # A concurrent import may have found an existing row with different metadata.
+    if jlpt is not None and row["difficulty_level"] != jlpt:
+        return []
+    if tag and tag not in (row["tags"] or []):
+        return []
+    # Returning the persisted row also handles romaji/English queries whose
+    # spelling need not occur in the Japanese word saved by Jisho.
+    row["relevance_score"] = 1
+    return [_normalize_search_row(row, "vocabulary")]
+
+
+def _search_local(
+    q: str,
+    limit: int,
+    jlpt: int | None,
+    tag: str | None,
+    type_filter: str | None,
 ) -> list[dict[str, Any]]:
     """Search vocabulary and kanji using parameterized SQL queries."""
     search_pattern = f"%{q}%"
