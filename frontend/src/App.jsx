@@ -13,6 +13,7 @@ import Flashcards from './pages/Flashcards'
 import Diary from './pages/Diary'
 import AIChat from './pages/AIChat'
 import Settings from './pages/Settings'
+import Profile from './pages/Profile'
 import Layout from './components/Layout'
 import { ThemeProvider } from './contexts/ThemeContext'
 
@@ -130,6 +131,15 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Settings />
+                </Layout>
+              </ProtectedRoute>
+            )}
+            />
+
+            <Route path="/profile" element={(
+              <ProtectedRoute>
+                <Layout>
+                  <Profile />
                 </Layout>
               </ProtectedRoute>
             )}

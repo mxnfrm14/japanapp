@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useSearch } from '../hooks/useApi'
+import { useFavoriteItems } from '../hooks/useFavorites'
+import FavoriteButton from './FavoriteButton'
+import FavoritesNotice from './FavoritesNotice'
 import { useNavigate } from 'react-router-dom'
 
 export default function Search({ query, isOpen, onClose, anchorRef }) {
@@ -8,6 +11,8 @@ export default function Search({ query, isOpen, onClose, anchorRef }) {
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const containerRef = useRef(null)
 	const hasResults = Array.isArray(data) && data.length > 0
+	const vocabularyFavorites = useFavoriteItems('vocabulary', isOpen ? data.filter((item) => item.type === 'vocabulary').map((item) => item.id) : [])
+	const kanjiFavorites = useFavoriteItems('kanji', isOpen ? data.filter((item) => item.type === 'kanji').map((item) => item.id) : [])
 
 	// Reset the highlighted row during render (rather than in an effect) whenever
 	// the panel opens/closes or a new set of results comes in.
@@ -77,6 +82,8 @@ export default function Search({ query, isOpen, onClose, anchorRef }) {
 			className={`z-50 ${isMobile ? 'fixed inset-x-0 top-16 bottom-0 bg-bg p-4' : 'absolute left-0 right-0 top-full mt-2 w-full'}`}
 		>
 			<div className="overflow-hidden rounded-lg border border-gray-200 bg-surface shadow-sm dark:border-gray-700">
+				<FavoritesNotice favorites={vocabularyFavorites} />
+				<FavoritesNotice favorites={kanjiFavorites} />
 				{isLoading ? (
 					<div className="p-4 text-center text-text-secondary">Searching...</div>
 				) : !hasResults ? (
@@ -100,8 +107,11 @@ export default function Search({ query, isOpen, onClose, anchorRef }) {
 											{item.meaning ? ` • ${item.meaning}` : ''}
 										</div>
 									</div>
-									<div className="text-xs text-text-muted">
+									<div className="flex items-center gap-2 text-xs text-text-muted">
 										{item.type === 'kanji' ? 'K' : item.type === 'kana' ? 'KA' : 'V'}
+										{(item.type === 'kanji' || item.type === 'vocabulary') && (
+											<FavoriteButton {...(item.type === 'kanji' ? kanjiFavorites : vocabularyFavorites).forItem(item.id)} />
+										)}
 									</div>
 								</div>
 							</li>

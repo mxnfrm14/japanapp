@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CaretRightIcon } from '@phosphor-icons/react'
 import { useInfiniteKanji } from '../hooks/useApi'
+import { useFavoriteItems } from '../hooks/useFavorites'
+import FavoriteButton from '../components/FavoriteButton'
+import FavoritesNotice from '../components/FavoritesNotice'
 
 const VIEW_MODES = [
   { key: 'cards', label: 'Card view' },
@@ -27,7 +30,7 @@ const formatReadings = (readings = []) => {
   return readings.join(' · ')
 }
 
-function KanjiCard({ item }) {
+function KanjiCard({ item, favorites }) {
   const navigate = useNavigate()
 
   return (
@@ -37,7 +40,10 @@ function KanjiCard({ item }) {
           <div className="font-cjk text-5xl leading-none text-text-primary md:text-6xl">{item.kanji}</div>
         </div>
 
-        <div className="badge badge-lg badge-primary">N{item.jlpt_level ?? '—'}</div>
+        <div className="flex items-center gap-2">
+          <div className="badge badge-lg badge-primary">N{item.jlpt_level ?? '—'}</div>
+          <FavoriteButton {...favorites.forItem(item.id)} />
+        </div>
       </div>
 
       <div className="mt-4 space-y-3 text-sm text-text-secondary">
@@ -93,7 +99,7 @@ function ReadingPills({ label, readings }) {
   )
 }
 
-function KanjiRow({ item }) {
+function KanjiRow({ item, favorites }) {
   const navigate = useNavigate()
 
   const openDetail = () => navigate(`/kanji/${item.id}`, { state: { item } })
@@ -150,6 +156,9 @@ function KanjiRow({ item }) {
       <td className="px-6 py-4 text-right align-middle text-sm tabular-nums text-text-muted">
         {item.frequency_rank ? `#${item.frequency_rank}` : '—'}
       </td>
+      <td className="px-4 py-4 align-middle">
+        <FavoriteButton {...favorites.forItem(item.id)} />
+      </td>
     </tr>
   )
 }
@@ -175,6 +184,7 @@ export default function Kanji() {
   })
 
   const loadedItems = useMemo(() => (data?.pages ?? []).flatMap((page) => page?.items ?? []), [data])
+  const favorites = useFavoriteItems('kanji', loadedItems.map((item) => item.id))
 
   const sentinelRef = useRef(null)
 
@@ -256,6 +266,7 @@ export default function Kanji() {
         </div>
       </div>
 
+      <FavoritesNotice favorites={favorites} />
       {isPending ? (
         <div className="rounded-3xl border border-gray-200 bg-bg-card p-8 text-center text-text-secondary shadow-sm dark:border-gray-700">
           Loading kanji...
@@ -271,7 +282,7 @@ export default function Kanji() {
       ) : viewMode === 'cards' ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {loadedItems.map((item) => (
-            <KanjiCard key={item.id} item={item} />
+            <KanjiCard key={item.id} item={item} favorites={favorites} />
           ))}
         </div>
       ) : (
@@ -285,11 +296,12 @@ export default function Kanji() {
                   <th scope="col" className="min-w-[22rem] whitespace-nowrap px-6 py-3.5 font-semibold">Readings</th>
                   <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Level</th>
                   <th scope="col" className="whitespace-nowrap px-6 py-3.5 text-right font-semibold">Rank</th>
+                  <th scope="col" className="px-4 py-3.5 font-semibold">Favorite</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {loadedItems.map((item) => (
-                  <KanjiRow key={item.id} item={item} />
+                  <KanjiRow key={item.id} item={item} favorites={favorites} />
                 ))}
               </tbody>
             </table>

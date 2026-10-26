@@ -4,7 +4,7 @@ import apiClient from '../services/api'
 export const useAuthStore = create((set) => ({
   user: null,
   session: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
 
   setUser: (user) => set({ user }),

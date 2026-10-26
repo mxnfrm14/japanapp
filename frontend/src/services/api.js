@@ -39,9 +39,11 @@ const request = async (path, options = {}) => {
   })
 
   const contentType = response.headers.get('content-type') || ''
-  const data = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text()
+  const data = response.status === 204
+    ? null
+    : contentType.includes('application/json')
+      ? await response.json()
+      : await response.text()
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -73,8 +75,6 @@ const apiClient = {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
-  // A 204 has no content-type, so `request` falls through to `response.text()`
-  // and resolves with an empty string — no special-casing needed here.
   delete: (path, options = {}) => request(path, { ...options, method: 'DELETE' }),
 }
 

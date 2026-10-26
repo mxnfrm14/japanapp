@@ -39,3 +39,4 @@ pp.md
 scripts/seed/node_modules/
 
 *.temp
+scripts/seed/missing.csv

@@ -21,7 +21,6 @@ import { toDateKey } from './diaryStorage'
 
 const STORAGE_VERSION = 'v1'
 const SELECTION_KEY = 'japanapp.dailyWord.selection'
-const BOOKMARKS_KEY = 'japanapp.dailyWord.bookmarks'
 const START_DATE_KEY = 'japanapp.dailyWord.startDate'
 const BOUNDS_KEY = `japanapp.dailyWord.bounds.${STORAGE_VERSION}`
 
@@ -197,40 +196,4 @@ export async function resolveDailyWord({ dateKey = toDateKey(), nonce = 0 } = {}
     // Detail failed: the list row still carries japanese/reading/meaning/level.
     return item
   }
-}
-
-export function listBookmarks() {
-  const bookmarks = readJson(scopedKey(BOOKMARKS_KEY), [])
-  return Array.isArray(bookmarks) ? bookmarks : []
-}
-
-export function isBookmarked(id) {
-  return listBookmarks().some((bookmark) => bookmark.id === id)
-}
-
-/**
- * Save/unsave the word. There is no flashcard or deck endpoint on the backend
- * yet, so saved words live in localStorage — same interim approach as the diary.
- */
-export function toggleBookmark(item) {
-  if (!item?.id) return false
-
-  const bookmarks = listBookmarks()
-  const existing = bookmarks.some((bookmark) => bookmark.id === item.id)
-
-  const next = existing
-    ? bookmarks.filter((bookmark) => bookmark.id !== item.id)
-    : [
-        {
-          id: item.id,
-          japanese: item.japanese,
-          reading: item.reading || null,
-          meaning: item.meaning || null,
-          savedAt: new Date().toISOString(),
-        },
-        ...bookmarks,
-      ]
-
-  writeJson(scopedKey(BOOKMARKS_KEY), next)
-  return !existing
 }

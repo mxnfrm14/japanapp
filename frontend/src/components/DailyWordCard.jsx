@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   BookOpenIcon,
-  BookmarkSimpleIcon,
   ArrowsClockwiseIcon,
   SpeakerHighIcon,
 } from '@phosphor-icons/react'
@@ -11,11 +10,12 @@ import {
   bumpNonce,
   getDayNumber,
   getNonce,
-  listBookmarks,
   toDateKey,
-  toggleBookmark,
 } from '../services/dailyWord'
 import { toRomaji } from '../utils/romaji'
+import { useFavoriteItems } from '../hooks/useFavorites'
+import FavoriteButton from './FavoriteButton'
+import FavoritesNotice from './FavoritesNotice'
 
 const KANJI_RANGE = /[一-龯]/
 
@@ -61,12 +61,9 @@ export default function DailyWordCard() {
   const dateKey = useMemo(() => toDateKey(), [])
   const [nonce, setNonce] = useState(() => getNonce(dateKey))
   const { data: word, isLoading, isFetching, error } = useDailyWord({ dateKey, nonce })
-  // Saved ids are mirrored in state so the bookmark toggle re-renders; localStorage
-  // stays the source of truth.
-  const [savedIds, setSavedIds] = useState(() => new Set(listBookmarks().map((b) => b.id)))
+  const favorites = useFavoriteItems('vocabulary', [word?.id])
 
   const dayNumber = useMemo(() => getDayNumber(dateKey), [dateKey])
-  const saved = word?.id ? savedIds.has(word.id) : false
 
   const speak = () => {
     if (!word || typeof window === 'undefined' || !window.speechSynthesis) return
@@ -129,16 +126,7 @@ export default function DailyWordCard() {
         </div>
 
         <div className="flex gap-2">
-          <IconButton
-            label={saved ? 'Remove from saved words' : 'Save this word'}
-            active={saved}
-            onClick={() => {
-              toggleBookmark(word)
-              setSavedIds(new Set(listBookmarks().map((b) => b.id)))
-            }}
-          >
-            <BookmarkSimpleIcon size={20} weight={saved ? 'fill' : 'regular'} />
-          </IconButton>
+          <FavoriteButton {...favorites.forItem(word.id)} />
           <IconButton label="Pronounce" onClick={speak} disabled={!canSpeak}>
             <SpeakerHighIcon size={20} />
           </IconButton>
@@ -150,6 +138,10 @@ export default function DailyWordCard() {
             <ArrowsClockwiseIcon size={20} className={isFetching ? 'animate-spin' : ''} />
           </IconButton>
         </div>
+      </div>
+
+      <div className="relative">
+        <FavoritesNotice favorites={favorites} />
       </div>
 
       <div className="relative mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">

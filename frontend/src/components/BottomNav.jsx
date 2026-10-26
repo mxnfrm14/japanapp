@@ -26,9 +26,9 @@ export default function BottomNav() {
         <div className="text-xs">Alphabet</div>
       </NavLink>
 
-      <NavLink to="/settings" className={({ isActive }) => `flex-1 py-2 text-center text-(--color-text-secondary) ${isActive ? 'font-semibold' : ''}`}>
+      <NavLink to="/profile" className={({ isActive }) => `flex-1 py-2 text-center text-(--color-text-secondary) ${isActive ? 'font-semibold' : ''}`}>
         <UserIcon size={20} weight="bold" />
-        <div className="text-xs">User</div>
+        <div className="text-xs">Profile</div>
       </NavLink>
     </nav>
   )

@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowDownIcon, ArrowUpIcon, CaretRightIcon } from '@phosphor-icons/react'
 import { useInfiniteVocabulary, useFetchVocabularyTags } from '../hooks/useApi'
+import { useFavoriteItems } from '../hooks/useFavorites'
+import FavoriteButton from '../components/FavoriteButton'
+import FavoritesNotice from '../components/FavoritesNotice'
 
 const PAGE_SIZE = 50
 
@@ -16,7 +19,7 @@ const LEVEL_ORDERS = [
   { key: 'asc', icon: ArrowUpIcon, label: 'Hardest first (N1 → N5)' },
 ]
 
-function VocabularyItemCard({ item }) {
+function VocabularyItemCard({ item, favorites }) {
   const navigate = useNavigate()
 
   return (
@@ -27,7 +30,10 @@ function VocabularyItemCard({ item }) {
           <div className="mt-1 text-sm text-text-secondary">{item.reading || '—'}</div>
         </div>
 
-        <div className="badge badge-lg badge-primary">N{item.difficulty_level ?? '—'}</div>
+        <div className="flex items-center gap-2">
+          <div className="badge badge-lg badge-primary">N{item.difficulty_level ?? '—'}</div>
+          <FavoriteButton {...favorites.forItem(item.id)} />
+        </div>
           
       </div>
 
@@ -68,7 +74,7 @@ function VocabularyItemCard({ item }) {
 
 const VISIBLE_ROW_TAGS = 3
 
-function VocabularyItemRow({ item }) {
+function VocabularyItemRow({ item, favorites }) {
   const navigate = useNavigate()
 
   const openDetail = () => navigate(`/vocabulary/${item.id}`, { state: { item } })
@@ -138,6 +144,9 @@ function VocabularyItemRow({ item }) {
       <td className="px-6 py-4 text-right align-middle text-sm tabular-nums text-text-muted">
         {item.frequency_rank ? `#${item.frequency_rank}` : '—'}
       </td>
+      <td className="px-4 py-4 align-middle">
+        <FavoriteButton {...favorites.forItem(item.id)} />
+      </td>
     </tr>
   )
 }
@@ -166,6 +175,7 @@ export default function Vocabulary() {
   })
 
   const loadedItems = useMemo(() => (data?.pages ?? []).flatMap((page) => page?.items ?? []), [data])
+  const favorites = useFavoriteItems('vocabulary', loadedItems.map((item) => item.id))
 
   const tags = useMemo(
     () => (Array.isArray(tagsQuery.data?.tags) ? tagsQuery.data.tags : []),
@@ -294,6 +304,7 @@ export default function Vocabulary() {
         </div>
       </div>
 
+      <FavoritesNotice favorites={favorites} />
       {isPending ? (
         <div className="rounded-3xl border border-gray-200 bg-bg-card p-8 text-center text-text-secondary shadow-sm dark:border-gray-700">
           Loading vocabulary...
@@ -309,7 +320,7 @@ export default function Vocabulary() {
       ) : viewMode === 'cards' ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {loadedItems.map((item) => (
-            <VocabularyItemCard key={item.id} item={item} />
+            <VocabularyItemCard key={item.id} item={item} favorites={favorites} />
           ))}
         </div>
       ) : (
@@ -323,11 +334,12 @@ export default function Vocabulary() {
                   <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Tags</th>
                   <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Level</th>
                   <th scope="col" className="whitespace-nowrap px-6 py-3.5 text-right font-semibold">Rank</th>
+                  <th scope="col" className="px-4 py-3.5 font-semibold">Favorite</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {loadedItems.map((item) => (
-                  <VocabularyItemRow key={item.id} item={item} />
+                  <VocabularyItemRow key={item.id} item={item} favorites={favorites} />
                 ))}
               </tbody>
             </table>

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import apiClient from "../services/api";
+import { useFavoriteItems } from "../hooks/useFavorites";
+import FavoriteButton from "../components/FavoriteButton";
+import FavoritesNotice from "../components/FavoritesNotice";
 
 const formatList = (value) => {
   if (!Array.isArray(value) || value.length === 0) {
@@ -28,6 +31,7 @@ export default function KanjiDetail() {
   const [item, setItem] = useState(() => location.state?.item ?? null);
   const [isLoading, setIsLoading] = useState(!location.state?.item);
   const [error, setError] = useState("");
+  const favorites = useFavoriteItems('kanji', [kanjiId]);
 
   useEffect(() => {
     let isActive = true;
@@ -84,6 +88,7 @@ export default function KanjiDetail() {
         </button>
       </div>
 
+      <FavoritesNotice favorites={favorites} />
       {isLoading ? (
         <div className="rounded-3xl border border-gray-200 bg-bg-card p-8 text-center text-text-secondary shadow-sm dark:border-gray-700">
           Loading kanji detail...
@@ -109,6 +114,7 @@ export default function KanjiDetail() {
               </div>
 
               <div className="flex flex-wrap gap-3">
+                <FavoriteButton {...favorites.forItem(kanjiId)} />
                 <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
                   <div className="text-xs uppercase tracking-[0.2em] text-text-muted">
                     JLPT

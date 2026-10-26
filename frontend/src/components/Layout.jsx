@@ -17,6 +17,7 @@ export default function Layout({ children }) {
   const isHomePage = location.pathname === '/'
   const isAIChatPage = location.pathname === '/ai'
   const isSettingsPage = location.pathname === '/settings'
+  const isProfilePage = location.pathname === '/profile'
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -114,7 +115,7 @@ export default function Layout({ children }) {
     }
   }
 
-  const showChatLayout = !isMobile && !isHomePage && !isSettingsPage && !isAIChatPage
+  const showChatLayout = !isMobile && !isHomePage && !isSettingsPage && !isProfilePage && !isAIChatPage
   const renderedChildren = React.isValidElement(children)
     ? React.cloneElement(children, { aiPrompt: selectionPrompt })
     : children
