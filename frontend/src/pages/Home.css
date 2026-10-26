@@ -1,0 +1,122 @@
+.home-page {
+  --home-ink-secondary: color-mix(in srgb, var(--color-text-primary) 72%, var(--color-surface));
+  --home-border: color-mix(in srgb, var(--color-text-primary) 12%, var(--color-surface));
+  --home-accent: var(--color-primary);
+  width: 100%;
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 16px 0 24px;
+}
+
+.dark .home-page {
+  --home-accent: color-mix(in srgb, var(--color-primary) 70%, var(--color-text-primary));
+}
+
+.home-page :is(a, button, input):focus-visible {
+  outline: 2px solid var(--home-accent);
+  outline-offset: 4px;
+}
+
+.home-page :is(h1, h2, h3, p) { margin: 0; }
+.home-page :is(h1, h2, h3) { text-wrap: balance; }
+.home-page [lang="ja"] { font-family: var(--font-cjk); }
+.home-header { margin-bottom: 32px; }
+.home-eyebrow, .home-card-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--home-ink-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+}
+.home-eyebrow > [lang="ja"] { color: var(--home-accent); font-size: 13px; letter-spacing: 0.08em; }
+.home-eyebrow-line { width: 24px; height: 1px; background: var(--home-border); }
+.home-header h1 { margin-top: 16px; font-size: clamp(28px, 3vw, 40px); line-height: 1.25; overflow-wrap: anywhere; }
+.home-intro { margin-top: 12px !important; color: var(--home-ink-secondary); font-size: 15px; line-height: 1.7; }
+.home-panel { min-width: 0; border: 1px solid var(--home-border); border-radius: var(--radius-2xl); background: var(--color-surface); box-shadow: var(--shadow-xs); }
+.home-daily-grid, .home-practice, .home-resources { display: grid; gap: 20px; }
+.home-daily-grid { grid-template-columns: minmax(0, 1fr); }
+.home-practice { min-width: 0; }
+.home-practice-card { display: flex; flex-direction: column; align-items: flex-start; padding: 24px; }
+.home-card-label { flex-wrap: wrap; gap: 8px; font-size: 10px; letter-spacing: 0.1em; }
+.home-card-label svg { flex-shrink: 0; color: var(--home-accent); }
+.home-card-label [lang="ja"] { margin-left: auto; color: var(--home-accent); font-size: 14px; }
+.home-practice-card h2 { margin-top: 20px; font-size: 22px; line-height: 1.35; letter-spacing: -0.035em; }
+.home-practice-card > p { margin: 12px 0 16px; color: var(--home-ink-secondary); font-size: 14px; line-height: 1.7; }
+.home-text-link, .home-saved-link { display: inline-flex; min-height: 44px; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; text-decoration: none; }
+.home-text-link { margin-top: auto; color: var(--home-accent); }
+.home-text-link svg, .home-saved-link svg { flex-shrink: 0; }
+.home-text-link:hover, .home-saved-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.home-tutor-card { background: linear-gradient(135deg, var(--color-primary-subtle), transparent), var(--color-surface); }
+.home-explore { margin-top: 40px; }
+.home-section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+.home-section-heading h2 { font-size: 22px; line-height: 1.4; }
+.home-section-heading p { margin-top: 6px; color: var(--home-ink-secondary); font-size: 14px; line-height: 1.6; }
+.home-saved-link { color: var(--home-ink-secondary); }
+.home-resources { grid-template-columns: minmax(0, 1fr); }
+.home-resource { display: flex; align-items: center; gap: 16px; padding: 24px; text-decoration: none; transition: border-color 180ms, box-shadow 180ms; }
+.home-resource:hover { border-color: var(--home-accent); box-shadow: var(--shadow-sm); }
+.home-resource-symbol { display: flex; width: 48px; height: 48px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--radius-xl); background: var(--color-bg); color: var(--home-accent); font-size: 30px; }
+.home-resource h3 { font-family: var(--font-display); font-size: 16px; line-height: 1.5; }
+.home-resource p { margin-top: 4px; color: var(--home-ink-secondary); font-size: 13px; line-height: 1.6; }
+.home-resource-arrow { flex-shrink: 0; margin-left: auto; color: var(--home-ink-secondary); }
+.home-search { position: relative; margin-bottom: 24px; }
+
+.daily-word-card {
+  position: relative;
+  display: flex;
+  min-height: 480px;
+  flex-direction: column;
+  overflow: hidden;
+  padding: clamp(24px, 3vw, 40px);
+  background: linear-gradient(150deg, var(--color-primary-subtle), transparent 55%), var(--color-surface);
+}
+.daily-word-card > :not(.daily-word-watermark) { position: relative; }
+.daily-word-watermark { position: absolute; top: 16%; right: -0.08em; color: var(--color-primary); opacity: 0.07; font-size: clamp(200px, 25vw, 360px); font-weight: 500; line-height: 1; pointer-events: none; user-select: none; }
+.daily-word-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 12px; }
+.daily-word-eyebrow { color: var(--home-accent); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+.daily-word-meta { margin-top: 6px; color: var(--home-ink-secondary); font-size: 12px; }
+.daily-word-tools { display: flex; gap: 8px; }
+.daily-word-tools > button { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; border: 1px solid var(--home-border); border-radius: var(--radius-xl); background: var(--color-surface); box-shadow: none; color: var(--home-accent); }
+.daily-word-tools > button:hover:not(:disabled) { background: var(--color-primary-subtle); }
+.daily-word-tools > button:disabled { cursor: not-allowed; opacity: 0.4; }
+.daily-word-content { margin: 36px 0 28px; }
+.home-page .daily-word-kicker { margin-bottom: 12px; color: var(--home-ink-secondary); font-size: 12px; letter-spacing: 0.16em; }
+.home-page .daily-word-japanese { font-size: clamp(48px, 5vw, 76px); font-weight: 500; line-height: 1.45; letter-spacing: 0.025em; overflow-wrap: anywhere; text-wrap: wrap; }
+.home-page .daily-word-reading { margin-top: 8px; color: var(--home-accent); font-size: 20px; line-height: 1.6; overflow-wrap: anywhere; }
+.home-page .daily-word-meaning { margin-top: 10px; color: var(--home-ink-secondary); font-size: 19px; line-height: 1.6; overflow-wrap: anywhere; }
+.daily-word-example { padding: 20px 0 24px; border-top: 1px solid var(--home-border); font-size: 18px; line-height: 1.9; overflow-wrap: anywhere; }
+.daily-word-highlight { color: var(--home-accent); font-weight: 600; }
+.home-page .daily-word-translation { margin-top: 10px; color: var(--home-ink-secondary); font-size: 13px; line-height: 1.7; }
+.daily-word-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: auto; padding-top: 8px; }
+.daily-word-primary, .daily-word-secondary { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border: 1px solid transparent; border-radius: var(--radius-xl); font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 180ms; }
+.daily-word-primary { background: var(--color-primary); color: var(--color-text-inverse); }
+.daily-word-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.dark .daily-word-primary { color: var(--color-text-primary); }
+.dark .daily-word-primary:hover:not(:disabled) { background: var(--color-primary-pressed); }
+.daily-word-primary:disabled { cursor: wait; opacity: 0.6; }
+.daily-word-secondary { border-color: var(--home-border); background: var(--color-surface); color: var(--color-text-primary); }
+.daily-word-secondary:hover { background: var(--color-surface-raised); }
+.daily-word-actions svg { flex-shrink: 0; }
+.daily-word-kanjis { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.daily-word-kanjis-label { margin-right: 4px; color: var(--home-ink-secondary); font-size: 13px; }
+.daily-word-kanji { min-width: 48px; padding: 8px 12px; font-size: 24px; line-height: 1.25; text-decoration: none; }
+.daily-word-placeholder { gap: 24px; align-items: flex-start; justify-content: center; }
+.daily-word-placeholder h2 { font-size: 28px; line-height: 1.4; }
+.daily-word-placeholder > p:not(.daily-word-eyebrow) { color: var(--home-ink-secondary); font-size: 15px; line-height: 1.7; }
+.daily-word-skeleton { width: 65%; height: 88px; border-radius: var(--radius-xl); background: var(--color-primary-subtle); }
+
+@media (min-width: 1024px) {
+  .home-page { padding-top: 24px; }
+  .home-daily-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; }
+  .home-practice { grid-template-rows: 1fr 1fr; gap: 24px; }
+  .home-resources { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .home-resource { flex-wrap: wrap; gap: 12px; }
+  .home-resource > div { flex: 1; min-width: 100px; }
+  .home-resource-arrow { width: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page *, .home-page *::before, .home-page *::after { animation: none !important; transition: none !important; }
+}

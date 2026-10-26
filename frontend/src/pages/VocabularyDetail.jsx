@@ -4,7 +4,25 @@ import apiClient from "../services/api";
 import { useFavoriteItems } from "../hooks/useFavorites";
 import FavoriteButton from "../components/FavoriteButton";
 import FavoritesNotice from "../components/FavoritesNotice";
-import { ArrowUpRightIcon, ToteSimpleIcon } from "@phosphor-icons/react";
+import { ArrowUpRightIcon, SpeakerHighIcon } from "@phosphor-icons/react";
+
+function highlightWord(sentence, word, reading) {
+  const text = String(sentence || "");
+  const needle = [word, reading].find((candidate) => candidate && text.includes(candidate));
+  if (!needle) return [{ text, match: false }];
+
+  const parts = [];
+  let cursor = 0;
+
+  for (let index = text.indexOf(needle); index !== -1; index = text.indexOf(needle, cursor)) {
+    if (index > cursor) parts.push({ text: text.slice(cursor, index), match: false });
+    parts.push({ text: needle, match: true });
+    cursor = index + needle.length;
+  }
+
+  if (cursor < text.length) parts.push({ text: text.slice(cursor), match: false });
+  return parts;
+}
 
 function DetailRow({ label, children }) {
   return (
@@ -25,6 +43,17 @@ export default function VocabularyDetail() {
   const [isLoading, setIsLoading] = useState(!location.state?.item);
   const [error, setError] = useState("");
   const favorites = useFavoriteItems('vocabulary', [vocabularyId]);
+  const canSpeak = typeof window !== "undefined"
+    && "speechSynthesis" in window
+    && "SpeechSynthesisUtterance" in window;
+
+  const speak = () => {
+    if (!item?.japanese || !canSpeak) return;
+    const utterance = new window.SpeechSynthesisUtterance(item.japanese);
+    utterance.lang = "ja-JP";
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
 
   useEffect(() => {
     let isActive = true;
@@ -94,8 +123,8 @@ export default function VocabularyDetail() {
       ) : item ? (
         <div className="space-y-6">
           <section className="rounded-3xl border border-gray-200 bg-bg-card p-6 shadow-sm dark:border-gray-700 md:p-8">
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-              <div>
+            <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+              <div className="min-w-0 break-words">
                 <div className="font-display text-5xl text-text-primary md:text-6xl">
                   {item.japanese}
                 </div>
@@ -110,13 +139,20 @@ export default function VocabularyDetail() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center gap-2 md:gap-3">
                 <FavoriteButton {...favorites.forItem(vocabularyId)} />
-                <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
-                  <div className="text-xs uppercase tracking-[0.2em] text-text-muted">
-                    Level
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-text-primary">
+                <button
+                  type="button"
+                  title="Pronounce"
+                  aria-label="Pronounce"
+                  onClick={speak}
+                  disabled={!canSpeak || !item.japanese}
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface text-text-secondary shadow-sm transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <SpeakerHighIcon size={20} aria-hidden="true" />
+                </button>
+                <div className="flex h-11 shrink-0 items-center justify-center rounded-2xl bg-surface px-2 text-text-secondary shadow-sm sm:px-4">
+                  <div className="text-sm font-semibold leading-tight text-text-primary">
                     N{item.difficulty_level ?? "—"}
                   </div>
                 </div>
@@ -126,9 +162,9 @@ export default function VocabularyDetail() {
                   <button
                     type="button"
                     onClick={() => window.open(item.jisho_url, "_blank")}
-                    className="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-text-inverse shadow-sm transition-colors hover:bg-primary-hover"
+                    className="inline-flex h-11 shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-2xl bg-primary px-2 text-xs font-semibold text-text-inverse shadow-sm transition-colors hover:bg-primary-hover sm:gap-2 sm:px-4 sm:text-sm"
                   >
-                    Open in Jisho <ArrowUpRightIcon size={20} weight="bold" />
+                    Open in Jisho <ArrowUpRightIcon size={20} weight="bold" className="shrink-0" />
                   </button>
                 )}
               </div>
@@ -137,16 +173,20 @@ export default function VocabularyDetail() {
 
           <section className="">
             <DetailRow label="Example Sentence">
-              <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="relative mt-8">
                 {item.example_sentence && (
-                  <span className="text-primary text-2xl">
-                    {item.example_sentence}
-                  </span>
+                  <p className="font-display text-xl text-text-primary md:text-2xl">
+                    {highlightWord(item.example_sentence, item.japanese, item.reading).map((part, index) => (
+                      <span key={index} className={part.match ? "text-primary" : undefined}>
+                        {part.text}
+                      </span>
+                    ))}
+                  </p>
                 )}
                 {item.example_translation && (
-                  <span className="text-xs text-text-secondary">
+                  <p className="mt-2 text-sm text-text-muted">
                     {item.example_translation}
-                  </span>
+                  </p>
                 )}
               </div>
             </DetailRow>

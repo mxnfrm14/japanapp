@@ -100,8 +100,8 @@ export default function KanjiDetail() {
       ) : item ? (
         <div className="space-y-6">
           <section className="rounded-3xl border border-gray-200 bg-bg-card p-6 shadow-sm dark:border-gray-700 md:p-8">
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-              <div>
+            <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+              <div className="min-w-0 break-words">
                 <div className="font-cjk text-7xl leading-none text-text-primary md:text-8xl">
                   {item.kanji}
                 </div>
@@ -113,32 +113,21 @@ export default function KanjiDetail() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:gap-3">
                 <FavoriteButton {...favorites.forItem(kanjiId)} />
-                <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
-                  <div className="text-xs uppercase tracking-[0.2em] text-text-muted">
-                    JLPT
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-text-primary">
-                    N{item.jlpt_level ?? "—"}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
-                  <div className="text-xs uppercase tracking-[0.2em] text-text-muted">
-                    Frequency
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-text-primary">
-                    #{item.frequency_rank ?? "—"}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
-                  <div className="text-xs uppercase tracking-[0.2em] text-text-muted">
-                    Strokes
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-text-primary">
-                    {item.stroke_count ?? "—"}
-                  </div>
-                </div>
+                {[
+                  { label: "JLPT", value: item.jlpt_level != null ? `N${item.jlpt_level}` : "—" },
+                  { label: "Frequency", value: item.frequency_rank != null ? `#${item.frequency_rank}` : "—" },
+                  { label: "Strokes", value: item.stroke_count ?? "—" },
+                ].map(({ label, value }) => (
+                  <dl
+                    key={label}
+                    className="inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-surface px-2 shadow-sm sm:px-3"
+                  >
+                    <dt className="text-xs text-text-secondary">{label}</dt>
+                    <dd className="text-sm font-semibold leading-tight text-text-primary">{value}</dd>
+                  </dl>
+                ))}
               </div>
             </div>
           </section>
@@ -153,18 +142,18 @@ export default function KanjiDetail() {
                   {item.components.onyomi_examples.map((ex, i) => (
                     <div
                       key={i}
-                      className="flex items-baseline gap-2 rounded-xl bg-bg px-3 py-2"
+                      className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl bg-bg px-3 py-2"
                     >
-                      <span className="font-cjk text-sm font-semibold text-text-primary">
+                      <span className="shrink-0 whitespace-nowrap font-cjk text-sm font-semibold text-text-primary">
                         {ex.example}
                       </span>
                       {ex.reading && (
-                        <span className="text-xs text-primary">
+                        <span className="shrink-0 whitespace-nowrap text-xs text-primary">
                           ({ex.reading})
                         </span>
                       )}
                       {ex.meaning && (
-                        <span className="text-xs text-text-muted">
+                        <span className="min-w-0 flex-1 basis-40 break-words text-xs text-text-muted">
                           {ex.meaning}
                         </span>
                       )}
@@ -182,18 +171,18 @@ export default function KanjiDetail() {
                   {item.components.kunyomi_examples.map((ex, i) => (
                     <div
                       key={i}
-                      className="flex items-baseline gap-2 rounded-xl bg-bg px-3 py-2"
+                      className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl bg-bg px-3 py-2"
                     >
-                      <span className="font-cjk text-sm font-semibold text-text-primary">
+                      <span className="shrink-0 whitespace-nowrap font-cjk text-sm font-semibold text-text-primary">
                         {ex.example}
                       </span>
                       {ex.reading && (
-                        <span className="text-xs text-primary">
+                        <span className="shrink-0 whitespace-nowrap text-xs text-primary">
                           ({ex.reading})
                         </span>
                       )}
                       {ex.meaning && (
-                        <span className="text-xs text-text-muted">
+                        <span className="min-w-0 flex-1 basis-40 break-words text-xs text-text-muted">
                           {ex.meaning}
                         </span>
                       )}

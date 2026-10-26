@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   BookOpenIcon,
   ArrowsClockwiseIcon,
@@ -12,7 +12,6 @@ import {
   getNonce,
   toDateKey,
 } from '../services/dailyWord'
-import { toRomaji } from '../utils/romaji'
 import { useFavoriteItems } from '../hooks/useFavorites'
 import FavoriteButton from './FavoriteButton'
 import FavoritesNotice from './FavoritesNotice'
@@ -38,18 +37,15 @@ function highlightWord(sentence, word, reading) {
   return parts
 }
 
-function IconButton({ label, onClick, active = false, disabled = false, children }) {
+function IconButton({ label, onClick, disabled = false, children }) {
   return (
     <button
       type="button"
       title={label}
       aria-label={label}
-      aria-pressed={active}
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-2xl bg-surface p-3 shadow-sm transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 ${
-        active ? 'text-primary' : 'text-text-secondary'
-      }`}
+      className="daily-word-icon"
     >
       {children}
     </button>
@@ -60,7 +56,7 @@ export default function DailyWordCard() {
   const navigate = useNavigate()
   const dateKey = useMemo(() => toDateKey(), [])
   const [nonce, setNonce] = useState(() => getNonce(dateKey))
-  const { data: word, isLoading, isFetching, error } = useDailyWord({ dateKey, nonce })
+  const { data: word, isLoading, isFetching, error, refetch } = useDailyWord({ dateKey, nonce })
   const favorites = useFavoriteItems('vocabulary', [word?.id])
 
   const dayNumber = useMemo(() => getDayNumber(dateKey), [dateKey])
@@ -77,65 +73,72 @@ export default function DailyWordCard() {
 
   if (isLoading) {
     return (
-      <section className="rounded-3xl border border-gray-200 bg-bg-card p-6 text-text-secondary shadow-sm dark:border-gray-700 md:p-8">
-        Loading today&apos;s word...
+      <section className="home-panel daily-word-card daily-word-placeholder" aria-label="Word of the day" aria-busy="true">
+        <p className="daily-word-eyebrow">WORD OF THE DAY</p>
+        <div className="daily-word-skeleton" aria-hidden="true" />
+        <p role="status">Loading today&apos;s word…</p>
       </section>
     )
   }
 
   if (error) {
     return (
-      <section className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
-        Could not load the word of the day.
+      <section className="home-panel daily-word-card daily-word-placeholder" aria-label="Word of the day">
+        <p className="daily-word-eyebrow">WORD OF THE DAY</p>
+        <h2>A little pause.</h2>
+        <p role="alert">Could not load the word of the day.</p>
+        <button type="button" onClick={() => refetch()} disabled={isFetching} className="daily-word-primary">{isFetching ? 'Trying again…' : 'Try again'}</button>
       </section>
     )
   }
 
   if (!word) {
     return (
-      <section className="rounded-3xl border border-gray-200 bg-bg-card p-6 text-text-secondary shadow-sm dark:border-gray-700 md:p-8">
-        No vocabulary available yet.
+      <section className="home-panel daily-word-card daily-word-placeholder" aria-label="Word of the day">
+        <p className="daily-word-eyebrow">WORD OF THE DAY</p>
+        <h2>Your next discovery is on its way.</h2>
+        <p role="status">No vocabulary available yet. You can explore the kana in the meantime.</p>
+        <button type="button" onClick={() => navigate('/kana')} className="daily-word-primary">Explore kana</button>
       </section>
     )
   }
 
-  const romaji = toRomaji(word.reading)
   const watermark = Array.from(word.japanese || '').find((char) => KANJI_RANGE.test(char))
-  const linkedKanji = word.linked_kanjis?.[0]
+  const linkedKanjis = word.linked_kanjis || []
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-gray-200 bg-bg-card p-6 shadow-sm dark:border-gray-700 md:p-8">
+    <section className="home-panel daily-word-card" aria-labelledby="daily-word-heading">
       {watermark && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -top-8 right-4 select-none font-display text-[12rem] leading-none text-gray-100 dark:text-gray-800 md:text-[16rem]"
+          className="daily-word-watermark font-cjk"
         >
           {watermark}
         </span>
       )}
 
-      <div className="relative flex items-start justify-between gap-4">
-        <div className="border-l-4 border-primary pl-4">
-          <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+      <div className="daily-word-header">
+        <div>
+          <div className="daily-word-eyebrow">
             Word of the day
           </div>
-          <div className="mt-1 text-sm text-text-muted">
-            Day {dayNumber}
+          <div className="daily-word-meta">
+            Discovery day {dayNumber}
             {word.difficulty_level ? ` • N${word.difficulty_level}` : ''}
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="daily-word-tools">
           <FavoriteButton {...favorites.forItem(word.id)} />
           <IconButton label="Pronounce" onClick={speak} disabled={!canSpeak}>
-            <SpeakerHighIcon size={20} />
+            <SpeakerHighIcon size={20} aria-hidden="true" />
           </IconButton>
           <IconButton
             label="Show another word"
             disabled={isFetching}
             onClick={() => setNonce(bumpNonce(dateKey))}
           >
-            <ArrowsClockwiseIcon size={20} className={isFetching ? 'animate-spin' : ''} />
+            <ArrowsClockwiseIcon size={20} aria-hidden="true" className={isFetching ? 'animate-spin' : ''} />
           </IconButton>
         </div>
       </div>
@@ -144,55 +147,59 @@ export default function DailyWordCard() {
         <FavoritesNotice favorites={favorites} />
       </div>
 
-      <div className="relative mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <h2 className="font-display text-5xl font-bold text-text-primary md:text-6xl">
+      <div className="daily-word-content">
+        <p lang="ja" className="daily-word-kicker font-cjk">今日の単語</p>
+        <h2 id="daily-word-heading" lang="ja" className="daily-word-japanese font-cjk">
           {word.japanese}
         </h2>
         {word.reading && (
-          <span className="font-cjk text-2xl text-primary md:text-3xl">{word.reading}</span>
+          <p lang="ja" className="daily-word-reading font-cjk">{word.reading}</p>
         )}
+        <p className="daily-word-meaning">{word.meaning || 'No meaning provided.'}</p>
       </div>
 
-      {romaji && <div className="relative mt-2 text-sm text-text-muted">{romaji}</div>}
-
-      <p className="relative mt-3 text-xl text-text-secondary md:text-2xl">
-        {word.meaning || 'No meaning provided.'}
-      </p>
-
       {word.example_sentence && (
-        <div className="relative mt-8">
-          <p className="font-display text-xl text-text-primary md:text-2xl">
+        <div className="daily-word-example">
+          <p lang="ja" className="font-cjk">
             {highlightWord(word.example_sentence, word.japanese, word.reading).map((part, index) => (
-              <span key={index} className={part.match ? 'text-primary' : undefined}>
+              <span key={index} className={part.match ? 'daily-word-highlight' : undefined}>
                 {part.text}
               </span>
             ))}
           </p>
           {word.example_translation && (
-            <p className="mt-2 text-sm text-text-muted">{word.example_translation}</p>
+            <p className="daily-word-translation">{word.example_translation}</p>
           )}
         </div>
       )}
 
-      <div className="relative mt-8 grid gap-3 sm:grid-cols-2">
+      <div className="daily-word-actions">
         <button
           type="button"
           onClick={() => navigate(`/vocabulary/${word.id}`, { state: { item: word } })}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-surface px-4 py-3 text-sm font-semibold text-text-primary shadow-sm transition-colors hover:text-primary"
+          className="daily-word-primary"
         >
-          <BookOpenIcon size={20} />
+          <BookOpenIcon size={20} aria-hidden="true" />
           View full details
         </button>
 
-        {linkedKanji && (
-          <button
-            type="button"
-            onClick={() => navigate(`/kanji/${linkedKanji.kanji_id}`)}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-surface px-4 py-3 text-sm font-semibold text-text-primary shadow-sm transition-colors hover:text-primary"
-          >
-            <span className="font-cjk text-lg">{linkedKanji.kanji || '字'}</span>
-            Learn kanji
-          </button>
+        {linkedKanjis.length > 0 && (
+          <div className="daily-word-kanjis" role="group" aria-labelledby="daily-word-kanjis-label">
+            <span id="daily-word-kanjis-label" className="daily-word-kanjis-label">
+              {linkedKanjis.length > 1 ? 'Choose a kanji' : 'Learn kanji'}
+            </span>
+            {linkedKanjis.map((kanji) => (
+              <Link
+                key={kanji.kanji_id}
+                to={`/kanji/${kanji.kanji_id}`}
+                aria-label={`Learn kanji ${kanji.kanji || '字'}`}
+                className="daily-word-secondary daily-word-kanji font-cjk"
+                lang="ja"
+              >
+                {kanji.kanji || '字'}
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     </section>

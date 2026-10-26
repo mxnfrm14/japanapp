@@ -1,124 +1,118 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useSearch } from '../hooks/useApi'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { MagnifyingGlassIcon, SpinnerGapIcon } from '@phosphor-icons/react'
 import { useFavoriteItems } from '../hooks/useFavorites'
 import FavoriteButton from './FavoriteButton'
 import FavoritesNotice from './FavoritesNotice'
-import { useNavigate } from 'react-router-dom'
 
-export default function Search({ query, isOpen, onClose, anchorRef }) {
-	const navigate = useNavigate()
-	const { data = [], isLoading } = useSearch(query, { limit: 20 })
-	const [selectedIndex, setSelectedIndex] = useState(-1)
-	const containerRef = useRef(null)
-	const hasResults = Array.isArray(data) && data.length > 0
-	const vocabularyFavorites = useFavoriteItems('vocabulary', isOpen ? data.filter((item) => item.type === 'vocabulary').map((item) => item.id) : [])
-	const kanjiFavorites = useFavoriteItems('kanji', isOpen ? data.filter((item) => item.type === 'kanji').map((item) => item.id) : [])
+const TYPE_LABELS = { vocabulary: 'Vocabulary', kanji: 'Kanji', kana: 'Kana' }
 
-	// Reset the highlighted row during render (rather than in an effect) whenever
-	// the panel opens/closes or a new set of results comes in.
-	const resultsKey = `${isOpen}|${query}|${hasResults}|${isLoading}`
-	const [prevResultsKey, setPrevResultsKey] = useState(resultsKey)
-	if (prevResultsKey !== resultsKey) {
-		setPrevResultsKey(resultsKey)
-		if (!isOpen) {
-			setSelectedIndex(-1)
-		} else if (hasResults) {
-			setSelectedIndex(0)
-		} else if (!isLoading) {
-			setSelectedIndex(-1)
-		}
-	}
+export default function Search({ id, query, data, isLoading, selectedIndex, onHighlight, onSelect }) {
+  const panelRef = useRef(null)
+  const listRef = useRef(null)
+  const vocabularyFavorites = useFavoriteItems('vocabulary', data.filter((item) => item.type === 'vocabulary').map((item) => item.id))
+  const kanjiFavorites = useFavoriteItems('kanji', data.filter((item) => item.type === 'kanji').map((item) => item.id))
 
-	useEffect(() => {
-		const handleKey = (e) => {
-			if (!isOpen) return
-			if (e.key === 'Escape') {
-				onClose?.()
-			} else if (e.key === 'ArrowDown') {
-				e.preventDefault()
-				setSelectedIndex((i) => Math.min(i + 1, (data?.length || 0) - 1))
-			} else if (e.key === 'ArrowUp') {
-				e.preventDefault()
-				setSelectedIndex((i) => Math.max(i - 1, 0))
-			} else if (e.key === 'Enter') {
-				e.preventDefault()
-				const item = data?.[selectedIndex]
-				if (item) {
-					const path = item.type === 'kanji' ? `/kanji/${item.id}` : `/vocabulary/${item.id}`
-					navigate(path, { state: { item } })
-					onClose?.()
-				}
-			}
-		}
+  useLayoutEffect(() => {
+    const fitPanel = () => {
+      const panel = panelRef.current
+      if (!panel) return
+      const viewport = window.visualViewport
+      const bottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight
+      const bottomGap = window.matchMedia('(max-width: 767px)').matches ? 112 : 16
+      const height = Math.max(0, bottom - panel.getBoundingClientRect().top - bottomGap)
+      panel.style.setProperty('--search-available-height', `${height}px`)
+    }
+    fitPanel()
+    window.addEventListener('resize', fitPanel)
+    window.addEventListener('scroll', fitPanel, true)
+    window.visualViewport?.addEventListener('resize', fitPanel)
+    window.visualViewport?.addEventListener('scroll', fitPanel)
+    return () => {
+      window.removeEventListener('resize', fitPanel)
+      window.removeEventListener('scroll', fitPanel, true)
+      window.visualViewport?.removeEventListener('resize', fitPanel)
+      window.visualViewport?.removeEventListener('scroll', fitPanel)
+    }
+  }, [])
 
-		window.addEventListener('keydown', handleKey)
-		return () => window.removeEventListener('keydown', handleKey)
-	}, [isOpen, data, selectedIndex, navigate, onClose])
+  useEffect(() => {
+    const list = listRef.current
+    const row = list?.children[selectedIndex]
+    if (!row) return
+    // Scroll the list itself, leaving the Home page and search input in place.
+    const listRect = list.getBoundingClientRect()
+    const rowRect = row.getBoundingClientRect()
+    if (rowRect.top < listRect.top) list.scrollTop -= listRect.top - rowRect.top
+    else if (rowRect.bottom > listRect.bottom) list.scrollTop += rowRect.bottom - listRect.bottom
+  }, [selectedIndex, data])
 
-	useEffect(() => {
-		const onClick = (e) => {
-			if (!containerRef.current) return
-			if (!containerRef.current.contains(e.target) && !anchorRef?.current?.contains(e.target)) {
-				onClose?.()
-			}
-		}
-		document.addEventListener('mousedown', onClick)
-		return () => document.removeEventListener('mousedown', onClick)
-	}, [onClose, anchorRef])
-
-	if (!isOpen) return null
-
-	const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
-	const handleSelect = (item) => {
-		const path = item.type === 'kanji' ? `/kanji/${item.id}` : `/vocabulary/${item.id}`
-		navigate(path, { state: { item } })
-		onClose?.()
-	}
-
-	return (
-		<div
-			ref={containerRef}
-			className={`z-50 ${isMobile ? 'fixed inset-x-0 top-16 bottom-0 bg-bg p-4' : 'absolute left-0 right-0 top-full mt-2 w-full'}`}
-		>
-			<div className="overflow-hidden rounded-lg border border-gray-200 bg-surface shadow-sm dark:border-gray-700">
-				<FavoritesNotice favorites={vocabularyFavorites} />
-				<FavoritesNotice favorites={kanjiFavorites} />
-				{isLoading ? (
-					<div className="p-4 text-center text-text-secondary">Searching...</div>
-				) : !hasResults ? (
-					<div className="p-4 text-text-secondary">No results</div>
-				) : (
-					<ul role="listbox" className="max-h-80 overflow-auto">
-						{data.map((item, idx) => (
-							<li
-								key={`${item.type}-${item.id}`}
-								role="option"
-								aria-selected={selectedIndex === idx}
-								onMouseEnter={() => setSelectedIndex(idx)}
-								onClick={() => handleSelect(item)}
-								className={`px-4 py-3 cursor-pointer hover:bg-bg-card ${selectedIndex === idx ? 'bg-bg-card' : ''}`}
-							>
-								<div className="flex items-start justify-between gap-2">
-									<div>
-										<div className="font-display text-lg">{item.japanese}</div>
-										<div className="text-sm text-text-secondary">
-											{item.reading || ''}
-											{item.meaning ? ` • ${item.meaning}` : ''}
-										</div>
-									</div>
-									<div className="flex items-center gap-2 text-xs text-text-muted">
-										{item.type === 'kanji' ? 'K' : item.type === 'kana' ? 'KA' : 'V'}
-										{(item.type === 'kanji' || item.type === 'vocabulary') && (
-											<FavoriteButton {...(item.type === 'kanji' ? kanjiFavorites : vocabularyFavorites).forItem(item.id)} />
-										)}
-									</div>
-								</div>
-							</li>
-						))}
-					</ul>
-				)}
-			</div>
-		</div>
-	)
+  return (
+    <div ref={panelRef} className="search-results">
+      <div className="search-results-heading">
+        <span>Dictionary</span>
+        {!isLoading && <span>{data.length} {data.length === 1 ? 'result' : 'results'}</span>}
+      </div>
+      {(vocabularyFavorites.error || kanjiFavorites.error) && (
+        <div className="search-favorites-notices">
+          <FavoritesNotice favorites={vocabularyFavorites} />
+          <FavoritesNotice favorites={kanjiFavorites} />
+        </div>
+      )}
+      <ul
+        ref={listRef}
+        id={id}
+        role="listbox"
+        aria-label="Search results"
+        aria-busy={isLoading}
+        className="search-results-list"
+      >
+        {!isLoading && data.map((item, index) => (
+          <li
+            key={`${item.type}-${item.id}`}
+            role="presentation"
+            className={`search-result ${selectedIndex === index ? 'search-result-selected' : ''}`}
+            onMouseEnter={() => onHighlight(index)}
+            onMouseDown={(event) => {
+              if (!event.target.closest('button')) event.preventDefault()
+            }}
+            onClick={() => onSelect(item)}
+          >
+            <div
+              id={`${id}-${index}`}
+              role="option"
+              aria-selected={selectedIndex === index}
+              className="search-result-content"
+            >
+              <div className="search-result-title">
+                <span className="search-result-japanese" lang="ja">{item.japanese}</span>
+                <span className="search-result-type">{TYPE_LABELS[item.type] || item.type}</span>
+              </div>
+              {item.reading && <div className="search-result-reading" lang="ja">{item.reading}</div>}
+              {item.meaning && <div className="search-result-meaning">{item.meaning}</div>}
+            </div>
+            {(item.type === 'kanji' || item.type === 'vocabulary') && (
+              <FavoriteButton {...(item.type === 'kanji' ? kanjiFavorites : vocabularyFavorites).forItem(item.id)} />
+            )}
+          </li>
+        ))}
+      </ul>
+      {isLoading ? (
+        <div className="search-results-state" role="status">
+          <SpinnerGapIcon className="search-spinner" size={24} aria-hidden="true" />
+          <span>Searching the dictionary…</span>
+        </div>
+      ) : !data.length ? (
+        <div className="search-results-state" role="status">
+          <MagnifyingGlassIcon size={24} aria-hidden="true" />
+          <strong>No results for “{query}”</strong>
+          <span>Try another word, kanji, or reading.</span>
+        </div>
+      ) : <span className="sr-only" role="status">{data.length} results available.</span>}
+      <div className="search-results-footer" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+        <span><kbd>↵</kbd> Open</span>
+        <span><kbd>Esc</kbd> Close</span>
+      </div>
+    </div>
+  )
 }

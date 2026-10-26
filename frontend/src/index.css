@@ -334,7 +334,6 @@ h6 {
 
 p {
   margin: 0 0 var(--space-4) 0;
-  max-width: 65ch;
 }
 
 p:last-child {
