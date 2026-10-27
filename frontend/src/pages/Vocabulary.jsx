@@ -278,15 +278,22 @@ export default function Vocabulary() {
         <div className="grid min-w-0 grid-cols-2 gap-3 md:block md:max-w-sm">
           <div className="flex min-w-0 flex-col gap-2 md:hidden">
             <label htmlFor="level-order" className="text-xs font-semibold uppercase tracking-[0.15em] text-text-muted">Level order</label>
-            <select
+            <button
               id="level-order"
-              value={levelOrder}
-              onChange={(event) => setLevelOrder(event.target.value)}
-              className="min-h-11 min-w-0 w-full rounded-xl border border-border/50 bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-primary"
+              type="button"
+              onClick={() => setLevelOrder((order) => order === 'desc' ? 'asc' : 'desc')}
+              aria-label={levelOrder === 'desc' ? 'Sort hardest first (N1 to N5)' : 'Sort easiest first (N5 to N1)'}
+              className="flex min-h-11 min-w-0 w-full items-center justify-center gap-2 rounded-xl border border-border/50 bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-primary"
             >
-              <option value="desc">N5 → N1</option>
-              <option value="asc">N1 → N5</option>
-            </select>
+              <span>N5</span>
+              <CaretRightIcon
+                size={16}
+                weight="bold"
+                aria-hidden="true"
+                className={`shrink-0 transition-transform ${levelOrder === 'asc' ? 'rotate-180' : ''}`}
+              />
+              <span>N1</span>
+            </button>
           </div>
           <div className="flex min-w-0 flex-col gap-2">
             <label htmlFor="tag-filter" className="text-xs font-semibold uppercase tracking-[0.15em] text-text-muted">
@@ -296,7 +303,7 @@ export default function Vocabulary() {
               id="tag-filter"
               value={activeTag}
               onChange={(event) => setActiveTag(event.target.value)}
-              className="min-h-11 min-w-0 w-full truncate rounded-xl border border-border/50 bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-primary"
+              className="min-h-11 min-w-0 w-full truncate rounded-xl border border-border/50 bg-surface px-3 py-2 text-sm text-text-primary shadow-sm scheme-light dark:scheme-dark focus-visible:outline-2 focus-visible:outline-primary"
             >
               <option value="all">All tags</option>
               {tags.map((tag) => (
