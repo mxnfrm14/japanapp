@@ -3,32 +3,14 @@
 // Entries live on the backend (`/diary/*`, one row per user per calendar day).
 // This module is the only place that talks to those routes — no page or
 // component calls the API for diary data directly.
-//
-// `style_mode` deliberately stays in localStorage: it is a per-user preference
-// rather than per-entry data, and is not part of the backend contract. Its key
-// is namespaced by user id so two accounts on one browser keep their own
-// setting.
 
-import apiClient from './api'
-import { useAuthStore } from '../stores/authStore'
-
-const STORAGE_VERSION = 'v1'
-const STYLE_MODE_KEY = 'japanapp.diary.styleMode'
-
-export const STYLE_MODE = {
-  AUTO: 'auto',
-  PLAIN: 'plain',
-  POLITE: 'polite',
-}
-
-const currentUserId = () => useAuthStore.getState().user?.id || 'anon'
-
-const scopedKey = (base) => `${base}.${STORAGE_VERSION}.${currentUserId()}`
+import apiClient from './api.js'
 
 /** Backend rows are snake_case; the rest of the frontend is camelCase. */
 const mapEntry = (entry) => ({
   id: entry.id,
   date: entry.date,
+  title: entry.title || '',
   text: entry.text,
   correction: entry.correction,
   createdAt: entry.created_at,
@@ -67,8 +49,8 @@ const MAX_PAGES = 50 // ~13 years of daily writing; a stop against a runaway has
  * All entries, newest first.
  *
  * Deliberately pages through the whole history rather than returning one page:
- * the streak count, the past-entries list, and the habitual-register lookup
- * that shapes the AI prompt all need the full set, not a window of it.
+ * the streak count, calendar markers, and journal history need the full set,
+ * not just the currently visible month.
  */
 export async function listEntries() {
   const items = []
@@ -80,8 +62,7 @@ export async function listEntries() {
   }
 
   // Sorted here rather than trusted from the wire — callers treat "newest
-  // first" as this function's contract (EntryList order, the recent-entries
-  // slice fed to the corrector).
+  // first" as this function's contract for journal history.
   return items.map(mapEntry).sort((a, b) => b.date.localeCompare(a.date))
 }
 
@@ -101,22 +82,13 @@ export async function getEntry(dateKey) {
  * (user_id, entry_date), so the editor's autosave can fire repeatedly without
  * stacking duplicate rows.
  */
-export async function saveEntry({ date, text, correction = null }) {
-  const { data } = await apiClient.put(`/diary/${date}`, { text, correction })
+export async function saveEntry({ date, title = '', text, correction = null }) {
+  const { data } = await apiClient.put(`/diary/${date}`, { title, text, correction })
   return mapEntry(data)
 }
 
 export async function deleteEntry(dateKey) {
   await apiClient.delete(`/diary/${dateKey}`)
-}
-
-export function getStyleMode() {
-  const stored = localStorage.getItem(scopedKey(STYLE_MODE_KEY))
-  return Object.values(STYLE_MODE).includes(stored) ? stored : STYLE_MODE.AUTO
-}
-
-export function setStyleMode(mode) {
-  localStorage.setItem(scopedKey(STYLE_MODE_KEY), mode)
 }
 
 /** Consecutive days written, counting back from today (or yesterday, mid-streak). */

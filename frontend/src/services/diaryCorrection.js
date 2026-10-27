@@ -2,7 +2,7 @@
 //
 // The prompt, the model call, and the JSON validation all live on the backend
 // now. The server also picks up the writer's recent entries itself (from
-// `entry_date`) to detect their habitual register and build voice context, so
+// `entry_date`) for vocabulary and voice context, so
 // nothing about the correction contract is decided here any more.
 //
 // The zod schema below is a boundary guard, not the primary validation — the
@@ -11,7 +11,7 @@
 
 import { z } from 'zod'
 
-import apiClient from './api'
+import apiClient from './api.js'
 
 const noteSchema = z.object({
   original: z.string().default(''),
@@ -33,20 +33,18 @@ export const NOTE_KINDS = ['particle', 'conjugation', 'word choice', 'naturalnes
 /**
  * @param {object} options
  * @param {string} options.text        the entry to correct
- * @param {string} options.styleMode   STYLE_MODE value — the writer's target register
  * @param {string} options.entryDate   the entry's date key (YYYY-MM-DD) — lets the
  *                                     server pull the writer's own recent entries for context
  * @param {AbortSignal} [options.signal]
  */
-export async function requestCorrection({ text, styleMode, entryDate, signal }) {
-  const trimmed = text.trim()
-  if (!trimmed) {
+export async function requestCorrection({ text, entryDate, signal }) {
+  if (!text.trim()) {
     throw new Error('Write something before asking for a correction.')
   }
 
   const response = await apiClient.post(
     '/diary/correct',
-    { text: trimmed, style_mode: styleMode, entry_date: entryDate },
+    { text, entry_date: entryDate },
     { signal },
   )
 

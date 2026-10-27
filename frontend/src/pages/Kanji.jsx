@@ -1,23 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CaretRightIcon } from '@phosphor-icons/react'
 import { useInfiniteKanji } from '../hooks/useApi'
 import { useFavoriteItems } from '../hooks/useFavorites'
 import FavoriteButton from '../components/FavoriteButton'
 import FavoritesNotice from '../components/FavoritesNotice'
+import SegmentedControl from '../components/SegmentedControl'
 
 const VIEW_MODES = [
-  { key: 'cards', label: 'Card view' },
-  { key: 'list', label: 'List view' },
+  { value: 'cards', label: 'Card view' },
+  { value: 'list', label: 'List view' },
 ]
 
 const JLPT_LEVELS = [
-  { key: 'all', label: 'All levels' },
-  { key: '5', label: 'N5' },
-  { key: '4', label: 'N4' },
-  { key: '3', label: 'N3' },
-  { key: '2', label: 'N2' },
-  { key: '1', label: 'N1' },
+  { value: 'all', label: <><span className="md:hidden">All</span><span className="hidden md:inline">All levels</span></> },
+  { value: '5', label: 'N5' },
+  { value: '4', label: 'N4' },
+  { value: '3', label: 'N3' },
+  { value: '2', label: 'N2' },
+  { value: '1', label: 'N1' },
 ]
 
 const PAGE_SIZE = 50
@@ -67,6 +68,29 @@ function KanjiCard({ item, favorites }) {
       >
         See more
       </button>
+    </article>
+  )
+}
+
+function MobileKanjiCard({ item, favorites }) {
+  return (
+    <article className="relative flex h-full min-w-0 flex-col rounded-2xl border border-border/40 bg-surface p-3 shadow-sm">
+      <Link
+        to={`/kanji/${item.id}`}
+        state={{ item }}
+        aria-label={`Open ${item.kanji}`}
+        className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      />
+      <div className="font-cjk text-5xl leading-tight text-text-primary">{item.kanji}</div>
+      <p className="mt-3! mb-0! line-clamp-2 text-sm leading-5 text-text-primary [overflow-wrap:anywhere]">
+        {item.meaning || 'No meaning provided.'}
+      </p>
+      <div className="mt-auto flex items-center justify-between gap-1 pt-3">
+        <span className="badge badge-primary badge-sm shrink-0">N{item.jlpt_level ?? '—'}</span>
+        <div className="relative z-10">
+          <FavoriteButton {...favorites.forItem(item.id)} />
+        </div>
+      </div>
     </article>
   )
 }
@@ -211,58 +235,29 @@ export default function Kanji() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-gray-200 bg-bg-card p-5 shadow-sm dark:border-gray-700 md:p-6">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="font-display text-3xl text-text-primary md:text-4xl">Kanji 漢字</h1>
-            <p className="mt-2 max-w-3xl text-sm text-text-secondary md:text-base">
-              Browse kanji in card or list form and sort them by JLPT level from N5 to N1.
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-surface px-4 py-3 text-sm text-text-secondary shadow-sm">
-            <div className="text-xs uppercase tracking-[0.2em] text-text-muted">Loaded</div>
-            <div className="mt-1 text-lg font-semibold text-text-primary">
-              {loadedItems.length}
-              {hasNextPage ? '+' : ''}
-            </div>
-          </div>
+      <div className="mb-5 flex min-w-0 flex-col gap-4 md:mb-6 md:rounded-3xl md:border md:border-border/40 md:bg-surface md:p-6 md:shadow-sm">
+        <div>
+          <h1 className="m-0! font-display text-2xl! text-text-primary md:text-4xl!">Kanji 漢字</h1>
+          <p className="mt-2 hidden max-w-3xl text-text-secondary md:block md:text-base">
+            Browse kanji in card or list form and sort them by JLPT level from N5 to N1.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="inline-flex w-full rounded-2xl bg-surface p-1 shadow-sm sm:w-fit">
-            {VIEW_MODES.map((mode) => {
-              const isActive = viewMode === mode.key
-
-              return (
-                <button
-                  key={mode.key}
-                  type="button"
-                  onClick={() => setViewMode(mode.key)}
-                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${isActive ? 'bg-primary text-text-inverse shadow-sm' : 'text-text-secondary hover:bg-bg-card hover:text-text-primary'}`}
-                >
-                  {mode.label}
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="inline-flex w-full flex-wrap gap-2 rounded-2xl bg-surface p-1 shadow-sm sm:w-fit">
-            {JLPT_LEVELS.map((level) => {
-              const isActive = activeLevel === level.key
-
-              return (
-                <button
-                  key={level.key}
-                  type="button"
-                  onClick={() => setActiveLevel(level.key)}
-                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${isActive ? 'bg-primary text-text-inverse shadow-sm' : 'text-text-secondary hover:bg-bg-card hover:text-text-primary'}`}
-                >
-                  {level.label}
-                </button>
-              )
-            })}
-          </div>
+        <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <SegmentedControl
+            options={VIEW_MODES}
+            value={viewMode}
+            onChange={setViewMode}
+            ariaLabel="Kanji view"
+            className="hidden md:block md:w-64"
+          />
+          <SegmentedControl
+            options={JLPT_LEVELS}
+            value={activeLevel}
+            onChange={setActiveLevel}
+            ariaLabel="JLPT level"
+            className="w-full md:max-w-lg"
+          />
         </div>
       </div>
 
@@ -279,34 +274,43 @@ export default function Kanji() {
         <div className="rounded-3xl border border-gray-200 bg-bg-card p-8 text-center text-text-secondary shadow-sm dark:border-gray-700">
           No kanji found for the selected level.
         </div>
-      ) : viewMode === 'cards' ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {loadedItems.map((item) => (
-            <KanjiCard key={item.id} item={item} favorites={favorites} />
-          ))}
-        </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-bg-card shadow-sm dark:border-gray-700">
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto">
-              <thead className="border-b border-gray-200 bg-surface/70 text-left text-xs font-semibold uppercase tracking-[0.15em] text-text-muted dark:border-gray-700">
-                <tr>
-                  <th scope="col" className="w-px whitespace-nowrap px-6 py-3.5 font-semibold">Kanji</th>
-                  <th scope="col" className="w-full px-6 py-3.5 font-semibold">Meaning</th>
-                  <th scope="col" className="min-w-[22rem] whitespace-nowrap px-6 py-3.5 font-semibold">Readings</th>
-                  <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Level</th>
-                  <th scope="col" className="whitespace-nowrap px-6 py-3.5 text-right font-semibold">Rank</th>
-                  <th scope="col" className="px-4 py-3.5 font-semibold">Favorite</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {loadedItems.map((item) => (
-                  <KanjiRow key={item.id} item={item} favorites={favorites} />
-                ))}
-              </tbody>
-            </table>
+        <>
+          <div className="grid grid-cols-2 gap-3 md:hidden">
+            {loadedItems.map((item) => (
+              <MobileKanjiCard key={item.id} item={item} favorites={favorites} />
+            ))}
           </div>
-        </div>
+          {viewMode === 'cards' ? (
+            <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-3">
+              {loadedItems.map((item) => (
+                <KanjiCard key={item.id} item={item} favorites={favorites} />
+              ))}
+            </div>
+          ) : (
+            <div className="hidden overflow-hidden rounded-3xl border border-gray-200 bg-bg-card shadow-sm md:block dark:border-gray-700">
+              <div className="overflow-x-auto">
+                <table className="min-w-full table-auto">
+                  <thead className="border-b border-gray-200 bg-surface/70 text-left text-xs font-semibold uppercase tracking-[0.15em] text-text-muted dark:border-gray-700">
+                    <tr>
+                      <th scope="col" className="w-px whitespace-nowrap px-6 py-3.5 font-semibold">Kanji</th>
+                      <th scope="col" className="w-full px-6 py-3.5 font-semibold">Meaning</th>
+                      <th scope="col" className="min-w-[22rem] whitespace-nowrap px-6 py-3.5 font-semibold">Readings</th>
+                      <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Level</th>
+                      <th scope="col" className="whitespace-nowrap px-6 py-3.5 text-right font-semibold">Rank</th>
+                      <th scope="col" className="px-4 py-3.5 font-semibold">Favorite</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {loadedItems.map((item) => (
+                      <KanjiRow key={item.id} item={item} favorites={favorites} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {!isPending && !isError ? (
@@ -316,7 +320,7 @@ export default function Kanji() {
             : hasNextPage
               ? 'Scroll for more'
               : loadedItems.length > 0
-                ? 'End of list'
+                ? `End of list, ${loadedItems.length} items`
                 : null}
         </div>
       ) : null}

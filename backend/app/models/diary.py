@@ -11,6 +11,7 @@ class DiaryEntry(BaseModel):
 
     id: str
     date: date_type
+    title: str = ""
     text: str
     correction: dict[str, Any] | None = None
     created_at: datetime
@@ -21,6 +22,7 @@ class DiaryUpsertRequest(BaseModel):
     """Body for upserting the entry of a given day."""
 
     text: str
+    title: str | None = None
     correction: dict[str, Any] | None = None
 
 
@@ -46,7 +48,6 @@ class CorrectionRequest(BaseModel):
     """Body for requesting a correction of a diary entry."""
 
     text: str = Field(min_length=1, max_length=5000)
-    style_mode: Literal["auto", "plain", "polite"] = "auto"
     entry_date: date_type | None = None
 
 

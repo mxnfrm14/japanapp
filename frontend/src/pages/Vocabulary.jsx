@@ -1,16 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowDownIcon, ArrowUpIcon, CaretRightIcon } from '@phosphor-icons/react'
 import { useInfiniteVocabulary, useFetchVocabularyTags } from '../hooks/useApi'
 import { useFavoriteItems } from '../hooks/useFavorites'
 import FavoriteButton from '../components/FavoriteButton'
 import FavoritesNotice from '../components/FavoritesNotice'
+import SegmentedControl from '../components/SegmentedControl'
+import SearchField from '../components/SearchField'
 
 const PAGE_SIZE = 50
 
 const VIEW_MODES = [
-  { key: 'cards', label: 'Card view' },
-  { key: 'list', label: 'List view' },
+  { value: 'cards', label: 'Card view' },
+  { value: 'list', label: 'List view' },
 ]
 
 // Keys are the sort direction on `difficulty_level`, where 5 is N5 (easiest).
@@ -68,6 +70,30 @@ function VocabularyItemCard({ item, favorites }) {
       >
         See more
       </button>
+    </article>
+  )
+}
+
+function MobileVocabularyCard({ item, favorites }) {
+  return (
+    <article className="relative flex h-full min-w-0 flex-col rounded-2xl border border-border/40 bg-surface p-3 shadow-sm">
+      <Link
+        to={`/vocabulary/${item.id}`}
+        state={{ item }}
+        aria-label={`Open ${item.japanese}`}
+        className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      />
+      <div className="line-clamp-2 font-cjk text-xl leading-snug text-text-primary [overflow-wrap:anywhere]">{item.japanese}</div>
+      <div className="mt-1 truncate font-cjk text-xs text-text-secondary">{item.reading || '—'}</div>
+      <p className="mt-3! mb-0! line-clamp-2 text-sm leading-5 text-text-primary [overflow-wrap:anywhere]">
+        {item.meaning || 'No meaning provided.'}
+      </p>
+      <div className="mt-auto flex items-center justify-between gap-1 pt-3">
+        <span className="badge badge-primary badge-sm shrink-0">N{item.difficulty_level ?? '—'}</span>
+        <div className="relative z-10">
+          <FavoriteButton {...favorites.forItem(item.id)} />
+        </div>
+      </div>
     </article>
   )
 }
@@ -205,63 +231,28 @@ export default function Vocabulary() {
     return () => observer.disconnect()
   }, [hasNextPage, fetchNextPage, viewMode])
 
-  const levelCounts = useMemo(() => {
-    return loadedItems.reduce((accumulator, item) => {
-      const level = String(item.difficulty_level ?? 'unknown')
-      accumulator[level] = (accumulator[level] || 0) + 1
-      return accumulator
-    }, {})
-  }, [loadedItems])
-
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-gray-200 bg-bg-card p-5 shadow-sm dark:border-gray-700 md:p-6">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="font-display text-3xl text-text-primary md:text-4xl">Vocabulary 単語</h1>
-            <p className="mt-2 max-w-3xl text-sm text-text-secondary md:text-base">
-              Browse vocabulary in card or list form, then sort by JLPT-style level or by tags.
-            </p>
-          </div>
-
-          <div className="grid gap-2 text-sm text-text-secondary sm:grid-cols-3">
-            <div className="rounded-2xl bg-surface px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.2em] text-text-muted">Loaded</div>
-              <div className="mt-1 text-lg font-semibold text-text-primary">
-                {loadedItems.length}
-                {hasNextPage ? '+' : ''}
-              </div>
-            </div>
-            <div className="rounded-2xl bg-surface px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.2em] text-text-muted">Levels</div>
-              <div className="mt-1 text-lg font-semibold text-text-primary">{Object.keys(levelCounts).length}</div>
-            </div>
-            <div className="rounded-2xl bg-surface px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.2em] text-text-muted">Tags</div>
-              <div className="mt-1 text-lg font-semibold text-text-primary">{tags.length}</div>
-            </div>
-          </div>
+      <div className="mb-5 flex min-w-0 flex-col gap-4 md:mb-6 md:rounded-3xl md:border md:border-border/40 md:bg-surface md:p-6 md:shadow-sm">
+        <div>
+          <h1 className="m-0! font-display text-2xl! text-text-primary md:text-4xl!">Vocabulary 単語</h1>
+          <p className="mt-2 hidden max-w-3xl text-text-secondary md:block md:text-base">
+            Browse vocabulary in card or list form, then sort by JLPT-style level or by tags.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="inline-flex w-full rounded-2xl bg-surface p-1 shadow-sm sm:w-fit">
-            {VIEW_MODES.map((mode) => {
-              const isActive = viewMode === mode.key
+        <SearchField className="w-full md:hidden" />
 
-              return (
-                <button
-                  key={mode.key}
-                  type="button"
-                  onClick={() => setViewMode(mode.key)}
-                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${isActive ? 'bg-primary text-text-inverse shadow-sm' : 'text-text-secondary hover:bg-bg-card hover:text-text-primary'}`}
-                >
-                  {mode.label}
-                </button>
-              )
-            })}
-          </div>
+        <div className="hidden gap-3 md:flex md:flex-col xl:flex-row xl:items-center xl:justify-between">
+          <SegmentedControl
+            options={VIEW_MODES}
+            value={viewMode}
+            onChange={setViewMode}
+            ariaLabel="Vocabulary view"
+            className="w-64 max-w-full"
+          />
 
-          <div className="inline-flex w-full items-center gap-1 rounded-2xl bg-surface p-1 shadow-sm sm:w-fit">
+          <div className="inline-flex w-fit items-center gap-1 rounded-2xl bg-surface-raised p-1 shadow-sm">
             <span className="px-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">Level</span>
             {LEVEL_ORDERS.map((order) => {
               const isActive = levelOrder === order.key
@@ -284,23 +275,37 @@ export default function Vocabulary() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:max-w-sm">
-          <label htmlFor="tag-filter" className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-            Tag filter
-          </label>
-          <select
-            id="tag-filter"
-            value={activeTag}
-            onChange={(event) => setActiveTag(event.target.value)}
-            className="rounded-2xl border border-gray-200 bg-bg-card px-4 py-3 text-sm text-text-primary shadow-sm outline-none transition-colors focus:border-primary dark:border-gray-700"
-          >
-            <option value="all">All tags</option>
-            {tags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
-            ))}
-          </select>
+        <div className="grid min-w-0 grid-cols-2 gap-3 md:block md:max-w-sm">
+          <div className="flex min-w-0 flex-col gap-2 md:hidden">
+            <label htmlFor="level-order" className="text-xs font-semibold uppercase tracking-[0.15em] text-text-muted">Level order</label>
+            <select
+              id="level-order"
+              value={levelOrder}
+              onChange={(event) => setLevelOrder(event.target.value)}
+              className="min-h-11 min-w-0 w-full rounded-xl border border-border/50 bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <option value="desc">N5 → N1</option>
+              <option value="asc">N1 → N5</option>
+            </select>
+          </div>
+          <div className="flex min-w-0 flex-col gap-2">
+            <label htmlFor="tag-filter" className="text-xs font-semibold uppercase tracking-[0.15em] text-text-muted">
+              Tag filter
+            </label>
+            <select
+              id="tag-filter"
+              value={activeTag}
+              onChange={(event) => setActiveTag(event.target.value)}
+              className="min-h-11 min-w-0 w-full truncate rounded-xl border border-border/50 bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <option value="all">All tags</option>
+              {tags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -317,34 +322,43 @@ export default function Vocabulary() {
         <div className="rounded-3xl border border-gray-200 bg-bg-card p-8 text-center text-text-secondary shadow-sm dark:border-gray-700">
           No vocabulary matches this filter.
         </div>
-      ) : viewMode === 'cards' ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {loadedItems.map((item) => (
-            <VocabularyItemCard key={item.id} item={item} favorites={favorites} />
-          ))}
-        </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-bg-card shadow-sm dark:border-gray-700">
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto">
-              <thead className="border-b border-gray-200 bg-surface/70 text-left text-xs font-semibold uppercase tracking-[0.15em] text-text-muted dark:border-gray-700">
-                <tr>
-                  <th scope="col" className="w-px min-w-[16rem] whitespace-nowrap px-6 py-3.5 font-semibold">Word</th>
-                  <th scope="col" className="w-full px-6 py-3.5 font-semibold">Meaning</th>
-                  <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Tags</th>
-                  <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Level</th>
-                  <th scope="col" className="whitespace-nowrap px-6 py-3.5 text-right font-semibold">Rank</th>
-                  <th scope="col" className="px-4 py-3.5 font-semibold">Favorite</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {loadedItems.map((item) => (
-                  <VocabularyItemRow key={item.id} item={item} favorites={favorites} />
-                ))}
-              </tbody>
-            </table>
+        <>
+          <div className="grid grid-cols-2 gap-3 md:hidden">
+            {loadedItems.map((item) => (
+              <MobileVocabularyCard key={item.id} item={item} favorites={favorites} />
+            ))}
           </div>
-        </div>
+          {viewMode === 'cards' ? (
+            <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-3">
+              {loadedItems.map((item) => (
+                <VocabularyItemCard key={item.id} item={item} favorites={favorites} />
+              ))}
+            </div>
+          ) : (
+            <div className="hidden overflow-hidden rounded-3xl border border-gray-200 bg-bg-card shadow-sm md:block dark:border-gray-700">
+              <div className="overflow-x-auto">
+                <table className="min-w-full table-auto">
+                  <thead className="border-b border-gray-200 bg-surface/70 text-left text-xs font-semibold uppercase tracking-[0.15em] text-text-muted dark:border-gray-700">
+                    <tr>
+                      <th scope="col" className="w-px min-w-[16rem] whitespace-nowrap px-6 py-3.5 font-semibold">Word</th>
+                      <th scope="col" className="w-full px-6 py-3.5 font-semibold">Meaning</th>
+                      <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Tags</th>
+                      <th scope="col" className="whitespace-nowrap px-6 py-3.5 font-semibold">Level</th>
+                      <th scope="col" className="whitespace-nowrap px-6 py-3.5 text-right font-semibold">Rank</th>
+                      <th scope="col" className="px-4 py-3.5 font-semibold">Favorite</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {loadedItems.map((item) => (
+                      <VocabularyItemRow key={item.id} item={item} favorites={favorites} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {!isPending && !isError ? (
@@ -354,7 +368,7 @@ export default function Vocabulary() {
             : hasNextPage
               ? 'Scroll for more'
               : loadedItems.length > 0
-                ? 'End of list'
+                ? `End of list, ${loadedItems.length} items`
                 : null}
         </div>
       ) : null}

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useFetchKana } from '../hooks/useApi'
+import SegmentedControl from '../components/SegmentedControl'
 
 const tabOptions = [
   { key: 'hiragana', label: 'Hiragana' ,jplabel: 'ひらがな' },
@@ -190,23 +191,23 @@ export default function Kana() {
         </div>
         </header>
 
-        <div className="inline-flex w-full rounded-xl bg-bg-card p-1 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 sm:w-fit">
-          {tabOptions.map((tab) => {
-            const isActive = activeTab === tab.key
-
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${isActive ? 'bg-primary text-text-inverse shadow-sm' : 'text-text-secondary hover:bg-surface hover:text-text-primary'}`}
-                aria-pressed={isActive}
-              >
-                {tab.label} ({tab.jplabel})
-              </button>
-            )
-          })}
-        </div>
+        <SegmentedControl
+          options={tabOptions.map((tab) => ({
+            value: tab.key,
+            label: (
+              <span>
+                <span className="block md:inline">{tab.label}</span>
+                <span className="block font-cjk text-xs md:ml-1 md:inline md:text-sm">
+                  <span className="hidden md:inline">(</span>{tab.jplabel}<span className="hidden md:inline">)</span>
+                </span>
+              </span>
+            ),
+          }))}
+          value={activeTab}
+          onChange={setActiveTab}
+          ariaLabel="Syllabary"
+          className="w-full md:max-w-md"
+        />
       </div>
 
       {isPending ? (

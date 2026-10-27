@@ -26,7 +26,7 @@ def fetch_diary_list(
     request_limit = limit + 1
 
     query = """
-        SELECT id, entry_date, text, correction, created_at, updated_at
+        SELECT id, entry_date, title, text, correction, created_at, updated_at
         FROM public.diary_entry
         WHERE user_id = %s
     """
@@ -56,7 +56,7 @@ def fetch_diary_list(
 def fetch_diary_entry(user_id: str, entry_date: date) -> dict[str, Any] | None:
     """Fetch the entry for one user on one calendar day."""
     query = """
-        SELECT id, entry_date, text, correction, created_at, updated_at
+        SELECT id, entry_date, title, text, correction, created_at, updated_at
         FROM public.diary_entry
         WHERE user_id = %s AND entry_date = %s
         LIMIT 1
@@ -91,19 +91,21 @@ def upsert_diary_entry(
     entry_date: date,
     text: str,
     correction: Optional[dict[str, Any]],
+    title: str | None = None,
 ) -> dict[str, Any]:
     """Create or replace the entry for one calendar day (idempotent per day)."""
     query = """
-        INSERT INTO public.diary_entry (user_id, entry_date, text, correction)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO public.diary_entry (user_id, entry_date, text, correction, title)
+        VALUES (%s, %s, %s, %s, COALESCE(%s, ''))
         ON CONFLICT (user_id, entry_date)
-        DO UPDATE SET text = EXCLUDED.text, correction = EXCLUDED.correction, updated_at = now()
-        RETURNING id, entry_date, text, correction, created_at, updated_at
+        DO UPDATE SET text = EXCLUDED.text, correction = EXCLUDED.correction,
+            title = COALESCE(%s, diary_entry.title), updated_at = now()
+        RETURNING id, entry_date, title, text, correction, created_at, updated_at
     """
     correction_param = Json(correction) if correction is not None else None
 
     with get_db_cursor() as cur:
-        cur.execute(query, [user_id, entry_date, text, correction_param])
+        cur.execute(query, [user_id, entry_date, text, correction_param, title, title])
         row = cur.fetchone()
 
     return _row_to_entry(row)

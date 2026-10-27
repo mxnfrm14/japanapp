@@ -67,6 +67,7 @@ def upsert_diary_entry_route(
 			user_id=user["id"],
 			entry_date=entry_date,
 			text=payload.text,
+			title=payload.title,
 			correction=payload.correction,
 		)
 	except Exception as e:
@@ -89,7 +90,6 @@ def correct_diary_entry_route(payload: CorrectionRequest, user: dict = Depends(g
 		return request_correction(
 			user_id=user["id"],
 			text=payload.text,
-			style_mode=payload.style_mode,
 			entry_date=payload.entry_date,
 		)
 	except TimeoutError as exc:
