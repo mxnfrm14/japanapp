@@ -17,6 +17,7 @@ import Profile from './pages/Profile'
 import Layout from './components/Layout'
 import { ThemeProvider } from './contexts/ThemeContext'
 import SessionExpiryDialog from './components/SessionExpiryDialog'
+import PageTitle from './components/PageTitle'
 
 function ProtectedRoute({ children }) {
   const { user, isLoading } = useAuthStore()
@@ -42,6 +43,7 @@ function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
+        <PageTitle />
         <SessionExpiryDialog />
         <div className="min-h-screen bg-bg">
           <Routes>
