@@ -108,9 +108,6 @@ export default function KanjiDetail() {
                 <h1 className="mt-4 font-display text-3xl text-text-primary md:text-4xl">
                   {item.meaning}
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm text-text-secondary md:text-base">
-                  Detailed kanji reference for study and review.
-                </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:gap-3">

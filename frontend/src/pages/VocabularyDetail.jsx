@@ -134,9 +134,6 @@ export default function VocabularyDetail() {
                 <h1 className="mt-4 font-display text-3xl text-text-primary md:text-4xl">
                   {item.meaning || "No meaning provided."}
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm text-text-secondary md:text-base">
-                  Detailed vocabulary reference for study and review.
-                </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 md:gap-3">
